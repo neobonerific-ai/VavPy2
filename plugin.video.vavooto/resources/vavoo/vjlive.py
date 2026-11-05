@@ -463,6 +463,7 @@ def livePlay(name, type=None, group=None, retry='0', idx=None):
 	# Stream und darf daher nicht als HLS/Timeshift deklariert werden.
 	is_mpeg_ts = is_mpeg_ts_url(url)
 	o.setProperty('inputstream', 'inputstream.ffmpegdirect')
+	o.setProperty('inputstreamaddon', 'inputstream.ffmpegdirect')
 	o.setProperty('inputstream.ffmpegdirect.is_realtime_stream', 'true')
 	o.setProperty('inputstream.ffmpegdirect.open_mode', 'ffmpeg')
 	if is_mpeg_ts:
