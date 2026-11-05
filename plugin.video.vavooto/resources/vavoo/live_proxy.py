@@ -268,7 +268,8 @@ class VavooSession:
             self._seq_since = time.time()
         return text
 
-    def _segment_urls(self, text, base):
+    @staticmethod
+    def _segment_urls(text, base):
         out = []
         for line in text.splitlines():
             l = line.strip()
@@ -408,6 +409,10 @@ def _ts_sync_offset(data):
     """Findet einen belastbaren 188-Byte-MPEG-TS-Paketanfang."""
     if not data:
         return None
+    try:
+        data = bytearray(data)
+    except Exception:
+        pass
     for offset in range(min(188, len(data))):
         if data[offset] != 0x47:
             continue

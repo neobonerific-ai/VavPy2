@@ -26,22 +26,23 @@ import vavoo.live_proxy as lp
 
 # _segment_urls
 text = "#EXTM3U\n#EXT-X-TARGETDURATION:4\nseg1.ts\nseg2.ts\n"
-urls = lp.VavooSession._segment_urls(None, text, "http://example.com/live.m3u8")
+urls = lp.VavooSession._segment_urls(text, "http://example.com/live.m3u8")
 # call as unbound manually
 urls = [l for l in text.splitlines() if l.strip() and not l.strip().startswith('#')]
 assert urls == ['seg1.ts', 'seg2.ts']
 
 # _ts_sync_offset
-data = bytes([0x00]*10 + [0x47] + [0x00]*187 + [0x47] + [0x00]*187)
+data = bytearray([0x00]*10 + [0x47] + [0x00]*187 + [0x47] + [0x00]*187)
 off = lp._ts_sync_offset(data)
 assert off == 10, off
 assert lp._ts_sync_offset(b'') is None
 assert lp._ts_sync_offset(b'\x47' + b'\x00'*10) == 0
 
 # _parse_range via handler instance method (standalone)
-class H(lp.UnifiedLiveProxyHandler):
+class H(object):
     pass
-h = H.__new__(H)
+h = H()
+h._parse_range = lambda total: lp.UnifiedLiveProxyHandler.__dict__['_parse_range'](h, total)
 h.headers = {}
 # monkeypatch headers.get
 class _H:
