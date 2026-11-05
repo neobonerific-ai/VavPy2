@@ -270,8 +270,13 @@ _AUTH_SIGNATURE_SAFETY_MS = 30000
 # (5 Versuche x request(retries=3) x 15s Timeout x 2 Profile).
 _AUTH_SIGNATURE_TOTAL_BUDGET = 25
 
+try:
+	_string_types = (basestring,)
+except NameError:
+	_string_types = (str,)
+
 def _decode_auth_signature(signature):
-	if not isinstance(signature, str) or not signature:
+	if not isinstance(signature, _string_types) or not signature:
 		return None
 	try:
 		encoded = signature.encode("ascii")
@@ -280,7 +285,7 @@ def _decode_auth_signature(signature):
 		if not isinstance(envelope, dict) or not envelope.get("signature"):
 			return None
 		payload = envelope.get("data")
-		if isinstance(payload, str):
+		if isinstance(payload, _string_types):
 			payload = json.loads(payload)
 		return payload if isinstance(payload, dict) else None
 	except Exception:
