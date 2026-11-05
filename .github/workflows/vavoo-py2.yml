@@ -1,0 +1,23 @@
+name: VAVOO Py2 CI
+on:
+  push:
+    branches: [kodi18-py2]
+  workflow_dispatch:
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: false
+jobs:
+  compile:
+    runs-on: ubuntu-latest
+    container: python:2.7
+    steps:
+      - uses: actions/checkout@v4
+      - name: Compile Python 2
+        run: python -m compileall plugin.video.vavooto
+      - name: Package
+        run: cd plugin.video.vavooto && zip -r /tmp/vavoo.zip . && ls -l /tmp/vavoo.zip
+      - name: Upload
+        uses: actions/upload-artifact@v4
+        with:
+          name: vavoo-py2
+          path: /tmp/vavoo.zip
