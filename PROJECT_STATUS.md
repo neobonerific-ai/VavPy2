@@ -2,9 +2,9 @@
 
 Phase: 1 Setup / Arbeitspaket A (Python 2.7 Port) + B (HTTP transport) — in progress
 Branch: kodi18-py2
-Commit: 7f7378d (HTTPX entfernt in get_httpx, requests only)
-Last Run: 42058562077 (success on 7f7378d)
-Processed Run-IDs: 42041332854, 42042148762, 42043142676, 42044693828, 42045069053, 42048108905, 42049255467, 42050349077, 42050370005, 42052501214, 42053615632, 42053637740, 42054759902, 42054788404, 42056007788, 42056025407, 42057196681, 42058562077
+Commit: 5917601 (httpx streaming API in live_proxy -> requests)
+Last Run: 42060938503 (success on 5917601)
+Processed Run-IDs: 42041332854, 42042148762, 42043142676, 42044693828, 42045069053, 42048108905, 42049255467, 42050349077, 42050370005, 42052501214, 42053615632, 42053637740, 42054759902, 42054788404, 42056007788, 42056025407, 42057196681, 42058562077, 42059735949, 42060938503
 Open tasks: Source inventory, full Python2 port, HTTP transport (HTTPX entfernt done, Caller prüfen), Kodi18 playback, real CI tests, hardware test.
 
 ## Entwicklungspakete
@@ -15,7 +15,7 @@ Open tasks: Source inventory, full Python2 port, HTTP transport (HTTPX entfernt 
 - E Hardwaretest (offen / dokumentieren)
 
 ## Nächste konkrete Aufgabe
-Caller von get_httpx() prüfen (requests API), HTTP/2 entfernt dokumentieren; dann reale Import-/Funktionstests in CI ergänzen.
+CI-Run mit HTTP-Transport-Tests abwarten; dann Funktionstests für utils/linear_lite erweitern und Kodi18-Integration (Paket C) angehen.
 
 ## Letzter geprüfter Commit
 7f7378d (HEAD)
