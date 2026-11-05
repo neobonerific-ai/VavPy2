@@ -352,6 +352,7 @@ def get(params):
 			o.setProperty("IsPlayable", "true")
 			if ".m3u8" in streamurl:
 				o.setProperty("inputstream", "inputstream.adaptive")
+				o.setProperty("inputstreamaddon", "inputstream.adaptive")
 				o.setProperty('inputstream.adaptive.config', '{"ssl_verify_peer":false}')
 				if "|" in streamurl: 
 					streamurl, headers = streamurl.split("|")
