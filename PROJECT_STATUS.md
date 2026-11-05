@@ -2,7 +2,8 @@
 
 Phase: 1 Setup / Arbeitspaket A (Python 2.7 Port) — in progress
 Branch: kodi18-py2
-Commit: 133d0ab (local HEAD = origin/kodi18-py2)
+Commit: 027f12b + ListItemInfoTag fallback
+Last Run: 42047052898 (success)
 Last Run: 42045069053 (success, artifact vavoo-py2/vavoo.zip, 30 files, compileall only)
 Open tasks: Source inventory, full Python2 port, HTTP transport, Kodi18 playback, real CI tests, hardware test.
 

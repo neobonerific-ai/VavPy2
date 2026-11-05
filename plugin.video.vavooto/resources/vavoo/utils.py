@@ -57,6 +57,7 @@ try:
 	tagger = True
 except Exception:
 	tagger = False
+	ListItemInfoTag = None
 
 def translatePath(*args):
 	return xbmcvfs.translatePath(*args)
@@ -743,8 +744,11 @@ def addDir(name, params, iconimage="DefaultFolder.png", isFolder=True, context=N
 		context.append(("Alle Favoriten entfernen", "RunPlugin(%s?action=delallTvFavorit)" % sys.argv[0]))
 	liz.addContextMenuItems(context)
 	infoLabels={"title": name, "plot": plot}
-	info_tag = ListItemInfoTag(liz, 'video')
-	info_tag.set_info(infoLabels)
+	if tagger:
+		info_tag = ListItemInfoTag(liz, 'video')
+		info_tag.set_info(infoLabels)
+	else:
+		liz.setInfo('video', infoLabels)
 	add(params, liz, isFolder)
 
 def addDir2(name_, icon_, action, context=None, isFolder=True, **params):
@@ -765,10 +769,13 @@ def createListItem(params):
 	if art.get("poster"): art["icon"] = art["poster"]
 	if art.get("thumb"): art["poster"] = art["thumb"]
 	o.setArt(art)
-	info_tag = ListItemInfoTag(o, 'video')
-	info_tag.set_info(infos)
-	info_tag.set_cast(data["cast"])
-	info_tag.set_unique_ids(data["ids"], "tmdb")
+	if tagger:
+		info_tag = ListItemInfoTag(o, 'video')
+		info_tag.set_info(infos)
+		info_tag.set_cast(data["cast"])
+		info_tag.set_unique_ids(data["ids"], "tmdb")
+	else:
+		o.setInfo('video', infos)
 	return o
 
 def yesno(heading, line1, line2='', line3='', nolabel='', yeslabel=''):

@@ -479,8 +479,14 @@ def livePlay(name, type=None, group=None, retry='0', idx=None):
 		url += "|{}".format(headers)
 	o.setPath(url)
 	o.setProperty("IsPlayable", "true")
-	info_tag = ListItemInfoTag(o, 'video')
-	info_tag.set_info(infoLabels)
+	if tagger:
+		if tagger:
+			info_tag = ListItemInfoTag(o, 'video')
+			info_tag.set_info(infoLabels)
+		else:
+			o.setInfo('video', infoLabels)
+	else:
+		o.setInfo('video', infoLabels)
 	set_resolved(o)
 	end()
 	if not live_player:
@@ -540,8 +546,11 @@ def channels(items=None, type=None, group=None):
 		cm.append(("Einstellungen", "RunPlugin(%s?action=settings)" % sys.argv[0]))
 		o.addContextMenuItems(cm)
 		infoLabels = {"title": title, "plot": plot}
-		info_tag = ListItemInfoTag(o, 'video')
-		info_tag.set_info(infoLabels)
+		if tagger:
+			info_tag = ListItemInfoTag(o, 'video')
+			info_tag.set_info(infoLabels)
+		else:
+			o.setInfo('video', infoLabels)
 		o.setProperty("IsPlayable", "true")
 		param = {"name": name, "type": type, "group": group} if type else {"name": name}
 		add(param, o)
@@ -564,8 +573,11 @@ def favchannels():
 		cm.append(("Einstellungen", "RunPlugin(%s?action=settings)" % sys.argv[0]))
 		o.addContextMenuItems(cm)
 		infoLabels = {"title": name, "plot": "[COLOR gold]Liste der eigene Live Favoriten[/COLOR]"}
-		info_tag = ListItemInfoTag(o, 'video')
-		info_tag.set_info(infoLabels)
+		if tagger:
+			info_tag = ListItemInfoTag(o, 'video')
+			info_tag.set_info(infoLabels)
+		else:
+			o.setInfo('video', infoLabels)
 		o.setProperty("IsPlayable", "true")
 		add({"name": name}, o)
 	sort_method()
