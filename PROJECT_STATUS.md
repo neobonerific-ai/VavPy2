@@ -2,7 +2,7 @@
 
 Phase: 1 Setup / Arbeitspaket A (Python 2.7 Port) — in progress
 Branch: kodi18-py2
-Commit: 027f12b + ListItemInfoTag fallback
+Commit: 2d9b5a8 (CI 42048108905 success)
 Last Run: 42047052898 (success)
 Last Run: 42045069053 (success, artifact vavoo-py2/vavoo.zip, 30 files, compileall only)
 Open tasks: Source inventory, full Python2 port, HTTP transport, Kodi18 playback, real CI tests, hardware test.
@@ -29,4 +29,4 @@ Inventar der Python3-spezifischen APIs in plugin.video.vavooto/ erstellen (urlli
 - Kein Hardwarezugriff bisher dokumentiert.
 
 ## Verarbeitete Run-IDs
-42041332854, 42042148762, 42043142676, 42044693828, 42045069053
+42041332854, 42042148762, 42043142676, 42044693828, 42045069053, 42048108905
