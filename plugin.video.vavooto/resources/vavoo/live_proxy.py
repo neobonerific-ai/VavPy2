@@ -51,7 +51,7 @@ _stalker_sessions_lock = threading.Lock()
 def get_httpx():
     global _httpx_client
     if _httpx_client is None:
-        # Prefer requests (py2.7-safe, no HTTP/2 dependency); httpx only as optional HTTP/2 upgrade
+        # Python 2.7 / Kodi 18: requests only (HTTPX entfernt). HTTP/2 nicht erforderlich.
         try:
             import requests
             session = requests.Session()
@@ -60,13 +60,8 @@ def get_httpx():
             session.timeout = (5.0, 20.0)
             _httpx_client = session
         except Exception:
-            try:
-                import httpx
-                tmo = httpx.Timeout(connect=5.0, read=20.0, write=5.0, pool=5.0)
-                _httpx_client = httpx.Client(http2=True, follow_redirects=True, timeout=tmo, verify=False)
-            except Exception:
-                log("http client init failed: %s" % format_exc())
-                _httpx_client = False
+            log("http client init failed: %s" % format_exc())
+            _httpx_client = False
     return _httpx_client
 
 
