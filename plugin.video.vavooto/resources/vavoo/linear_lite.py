@@ -177,8 +177,8 @@ def _resolve_nydus_hd(nydus_id):
     if not client:
         return None, None
     try:
-        url1 = f"https://nydus.org/stream/embedplayer_hq.php?id={nydus_id}"
-        h1 = {"User-Agent": BROWSER_UA, "Referer": f"https://nydus.org/stream/live/{nydus_id}/"}
+        url1 = "https://nydus.org/stream/embedplayer_hq.php?id={}".format(nydus_id)
+        h1 = {"User-Agent": BROWSER_UA, "Referer": "https://nydus.org/stream/live/{}/".format(nydus_id)}
         r1 = client.get(url1, headers=h1)
         zdec = re.search(r"zdec\s*=\s*['\"]([^'\"]+)", r1.text)
         if not zdec:
@@ -190,8 +190,8 @@ def _resolve_nydus_hd(nydus_id):
         iframe_url = base64.b64decode(m_atob.group(1)).decode("utf-8", errors="ignore")
 
         if ".m3u8" in iframe_url.lower():
-            stream_headers = {"User-Agent": BROWSER_UA, "Referer": f"https://nydus.org/stream/live/{nydus_id}/"}
-            return iframe_url, "&".join([f"{k}={quote_plus(v)}" for k, v in stream_headers.items()])
+            stream_headers = {"User-Agent": BROWSER_UA, "Referer": "https://nydus.org/stream/live/{}/".format(nydus_id)}
+            return iframe_url, "&".join(["{}={}".format(k, quote_plus(v)) for k, v in stream_headers.items()])
 
         h2 = dict(h1)
         h2["Referer"] = "https://nydus.org/"
@@ -202,10 +202,10 @@ def _resolve_nydus_hd(nydus_id):
 
         embed_obj = json.loads(m_embed.group(1))
         parsed = urlparse(iframe_url)
-        origin = f"{parsed.scheme}://{parsed.netloc}"
+        origin = "{}://{}".format(parsed.scheme, parsed.netloc)
         ch = embed_obj.get("channel")
         offset = embed_obj.get("hostLengthOffset", 22)
-        m3u8_url = f"{origin}/conv/go/{ch}/chunks.m3u81a.doc"
+        m3u8_url = "{}/conv/go/{}/chunks.m3u81a.doc".format(origin, ch)
 
         h3 = {"User-Agent": BROWSER_UA, "Referer": origin + "/"}
         r3 = client.get(m3u8_url, headers=h3)
@@ -237,7 +237,7 @@ def resolve_lite_stream(channel_info):
 
             # 2. Try direct mirror HLS streams (e.g. Antik SK)
             for sfx in ("_mirror", "_mirror2"):
-                mirror_url, mirror_headers = _resolve_nydus_hd(f"{nydus_id}{sfx}")
+                mirror_url, mirror_headers = _resolve_nydus_hd("{}{}".format(nydus_id, sfx))
                 if mirror_url:
                     return mirror_url, mirror_headers
 
@@ -246,14 +246,14 @@ def resolve_lite_stream(channel_info):
             "User-Agent": BROWSER_UA,
             "Referer": page_url or BASE_URL + "/",
         }
-        return stream_url, "&".join([f"{k}={quote_plus(v)}" for k, v in headers.items()])
+        return stream_url, "&".join(["{}={}".format(k, quote_plus(v)) for k, v in headers.items()])
 
     if stream_url:
         headers = {
             "User-Agent": BROWSER_UA,
             "Referer": page_url,
         }
-        return stream_url, "&".join([f"{k}={quote_plus(v)}" for k, v in headers.items()])
+        return stream_url, "&".join(["{}={}".format(k, quote_plus(v)) for k, v in headers.items()])
 
     return None, None
 
