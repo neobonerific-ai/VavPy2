@@ -22,6 +22,8 @@ jobs:
         run: python tests/test_kodi18_compat.py
       - name: linear_lite function tests
         run: python tests/test_linear_lite.py
+      - name: live_proxy helper tests
+        run: python tests/test_live_proxy_helpers.py
       - name: playback property tests
         run: python tests/test_playback_properties.py
       - name: Package

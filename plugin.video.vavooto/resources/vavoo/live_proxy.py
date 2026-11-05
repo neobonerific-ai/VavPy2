@@ -23,7 +23,7 @@ def _od_move_to_end(od, key):
     """Python 2.7 has no OrderedDict.move_to_end; emulate it."""
     try:
         od.move_to_end(key)
-    except AttributeError:
+    except (AttributeError, KeyError):
         try:
             val = od.pop(key)
         except KeyError:
