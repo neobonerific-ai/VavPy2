@@ -2,8 +2,8 @@
 
 Phase: 1 Setup / Arbeitspaket A (Python 2.7 Port) + B (HTTP transport) + D (Tests) — in progress
 Branch: kodi18-py2
-Commit: 0bb35de
-Last Run: 42065194381 (success)
+Commit: bb76c47
+Last Run: 42066459733 (success)
 Processed Run-IDs: 42041332854, 42042148762, 42043142676, 42044693828, 42045069053, 42048108905, 42049255467, 42050349077, 42050370005, 42052501214, 42053615632, 42053637740, 42054759902, 42054788404, 42056007788, 42056025407, 42057196681, 42058562077, 42059735949, 42060938503, 42061898948, 42062761835, 42062806606, 42063869356, 42063919705, 42065146201, 42065194381
 
 Open tasks: Source inventory, full Python2 port, HTTP transport (HTTPX entfernt done, Caller prüfen), Kodi18 playback, real CI tests, hardware test.
@@ -16,7 +16,7 @@ Open tasks: Source inventory, full Python2 port, HTTP transport (HTTPX entfernt 
 - E Hardwaretest (offen / dokumentieren)
 
 ## Nächste konkrete Aufgabe
-Kodi18-Integration (Paket C): player.py und playback-Properties für Leia prüfen; inputstreamaddon bereits hinzugefügt.
+Paket D: weitere reale CI-Tests (HTTP/Proxy/HLS, Dependency, ZIP) erweitern; Paket E Hardwaretest dokumentieren.
 
 ## Letzter geprüfter Commit
 HEAD (pending push)
