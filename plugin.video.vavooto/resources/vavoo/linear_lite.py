@@ -3,11 +3,15 @@ from vavoo.utils import *
 try:
     import html
 except ImportError:
-    import cgi
-    import cgi as html
-    def _unescape(s):
-        return cgi.unescape(s)
-    html.unescape = _unescape
+    import HTMLParser
+    _parser = HTMLParser.HTMLParser()
+    class html(object):
+        @staticmethod
+        def unescape(s):
+            try:
+                return _parser.unescape(s)
+            except Exception:
+                return s
 import re
 from vavoo.live_proxy import get_httpx, get_nydus_proxy_url
 
