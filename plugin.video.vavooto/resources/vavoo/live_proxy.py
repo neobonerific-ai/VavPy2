@@ -1096,10 +1096,10 @@ def get_vavoo_proxy_url(m3u8_url, vavoo_link=""):
         sid = _register_vavoo_session(m3u8_url, vavoo_link)
         # src bleibt an der URL: nach dem Verwerfen der Session (Idle-Timeout)
         # kann der Fallback-Zweig die Quelle neu aufloesen.
-        return f"http://127.0.0.1:{port}/vavoo_live.m3u8?sid={sid}{extra}"
+        return "http://127.0.0.1:{}/vavoo_live.m3u8?sid={}{}".format(port, sid, extra)
     except Exception:
         log("VAVOO Proxy Session-Setup fehlgeschlagen:\n%s" % format_exc())
-    return f"http://127.0.0.1:{port}/vavoo_live.m3u8?url={quote_plus(m3u8_url)}{extra}"
+    return "http://127.0.0.1:{}/vavoo_live.m3u8?url={}{}".format(port, quote_plus(m3u8_url), extra)
 
 
 def get_stalker_proxy_url(stream_url, headers=None, channel=None):
@@ -1109,7 +1109,7 @@ def get_stalker_proxy_url(stream_url, headers=None, channel=None):
     port = ensure_proxy()
     try:
         sid = _register_stalker_session(stream_url, headers, channel)
-        return f"http://127.0.0.1:{port}/stalker_live.m3u8?sid={sid}"
+        return "http://127.0.0.1:{}/stalker_live.m3u8?sid={}".format(port, sid)
     except Exception:
         log("Stalker TS Proxy Session-Setup fehlgeschlagen:\n%s" % format_exc())
         return stream_url
@@ -1119,5 +1119,5 @@ def get_nydus_proxy_url(m3u8_url, offset=22, origin=""):
     if not m3u8_url or not isinstance(m3u8_url, str):
         return m3u8_url
     port = ensure_proxy()
-    ref_param = f"&ref={quote_plus(origin)}/" if origin else ""
-    return f"http://127.0.0.1:{port}/nydus_live.m3u8?url={quote_plus(m3u8_url)}&offset={offset}{ref_param}"
+    ref_param = "&ref={}/".format(quote_plus(origin)) if origin else ""
+    return "http://127.0.0.1:{}/nydus_live.m3u8?url={}&offset={}{}".format(port, quote_plus(m3u8_url), offset, ref_param)

@@ -225,7 +225,7 @@ def resolve_link(link):
 					if getSetting("stalker_ts_hls_proxy") != "false" and is_mpeg_ts_url(link):
 						from vavoo.live_proxy import get_stalker_proxy_url
 						return get_stalker_proxy_url(link, headers, channel), None
-					return link, "&".join([f"{k}={v}" for k, v in headers.items()])
+					return link, "&".join(["{}={}".format(k, v) for k, v in headers.items()])
 			except Exception:
 				log(format_exc())
 			return None, None
@@ -239,7 +239,7 @@ def resolve_link(link):
 				if getSetting("stalker_ts_hls_proxy") != "false" and is_mpeg_ts_url(link):
 					from vavoo.live_proxy import get_stalker_proxy_url
 					return get_stalker_proxy_url(link, headers, channel), None
-				return link, "&".join([f"{k}={v}" for k, v in headers.items()])
+				return link, "&".join(["{}={}".format(k, v) for k, v in headers.items()])
 		except Exception:
 			log(format_exc())
 		return None, None
@@ -476,7 +476,7 @@ def livePlay(name, type=None, group=None, retry='0', idx=None):
 	o.setProperty('inputstream.ffmpegdirect.stream_opts',stream_opts)
 	o.setProperty('inputstream.ffmpegdirect.user_agent', 'libmpv')
 	if headers:
-		url += f"|{headers}"
+		url += "|{}".format(headers)
 	o.setPath(url)
 	o.setProperty("IsPlayable", "true")
 	info_tag = ListItemInfoTag(o, 'video')

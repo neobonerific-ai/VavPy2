@@ -328,7 +328,7 @@ def get_cache(key):
 			return False, None
 		sigValidUntil = r.get('sigValidUntil', 0)
 		if sigValidUntil == False or sigValidUntil > int(time.time()):
-			log(f"{key} from cache")
+			log("{} from cache".format(key))
 			return True, r.get('value')
 		home.clearProperty(path)
 	else:
@@ -345,7 +345,7 @@ def get_cache(key):
 				value = r.get('value')
 				data = json.dumps({"sigValidUntil": sigValidUntil, "value": value})
 				home.setProperty(path, data)
-				log(f"{key} from cache")
+				log("{} from cache".format(key))
 				return True, value
 			os.remove(file_path)
 	return False, None
@@ -364,7 +364,7 @@ def del_cache(key):
 		home.clearProperty(path)
 		if os.path.isfile(file):
 			os.remove(file)
-		log(f"Delete {key}")
+		log("Delete {}".format(key))
 	except Exception:
 		pass
 
