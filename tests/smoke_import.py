@@ -2,7 +2,7 @@ import sys, os
 base = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', 'plugin.video.vavooto', 'resources'))
 sys.path.insert(0, base)
 
-# Kodi 18 mocks — realistic: unknown attributes raise AttributeError
+# Kodi 18 mocks - realistic: unknown attributes raise AttributeError
 import types
 def _make_mod(name):
     m = types.ModuleType(name)
