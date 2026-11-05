@@ -71,12 +71,10 @@ except ImportError:
         for f in fs:
             f._done.wait()
         return list(fs)
-try:
-	from infotagger.listitem import ListItemInfoTag
-	tagger = True
-except Exception:
-	tagger = False
-	ListItemInfoTag = None
+# script.module.infotagger is not available on Kodi 18 / Python 2.7 target;
+# ListItem is populated via the classic xbmcgui.ListItem.setInfo API instead.
+tagger = False
+ListItemInfoTag = None
 
 def translatePath(*args):
     fn = getattr(xbmcvfs, "translatePath", None)
