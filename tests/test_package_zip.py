@@ -12,7 +12,7 @@ for r, _, fs in os.walk(addon_dir):
         if '__pycache__' in r or f.endswith('.pyc'):
             continue
         full = os.path.join(r, f)
-        arc = os.path.relpath(full, addon_dir)
+        arc = 'plugin.video.vavooto/' + os.path.relpath(full, addon_dir)
         z.write(full, arc)
 z.close()
 
@@ -20,8 +20,16 @@ z.close()
 z2 = zipfile.ZipFile(path)
 names = z2.namelist()
 assert len(names) > 0, 'zip must not be empty'
-# addon.xml must be present at top level
-assert 'addon.xml' in names, 'addon.xml missing from zip root'
+# exactly one top-level folder
+tops = set(n.split('/')[0] for n in names if '/' in n)
+assert tops == {'plugin.video.vavooto'}, 'unexpected top-level: %s' % tops
+# addon.xml under addon folder
+assert 'plugin.video.vavooto/addon.xml' in names, 'addon.xml missing'
+# read addon id
+import re
+data = z2.read('plugin.video.vavooto/addon.xml').decode('utf-8')
+m = re.search(r'id="([^"]+)"', data)
+assert m and m.group(1) == 'plugin.video.vavooto', 'bad addon id'
 # no pycache entries
 assert not any('__pycache__' in n for n in names), 'pycache leaked into zip'
 # all entries readable
