@@ -26,8 +26,10 @@ jobs:
         run: python tests/test_live_proxy_helpers.py
       - name: playback property tests
         run: python tests/test_playback_properties.py
+      - name: package zip test
+        run: python tests/test_package_zip.py
       - name: Package
-        run: python -c "import os,zipfile; z=zipfile.ZipFile('/tmp/vavoo.zip','w',zipfile.ZIP_DEFLATED); [z.write(os.path.join(r,f), os.path.relpath(os.path.join(r,f),'plugin.video.vavooto')) for r,_,fs in os.walk('plugin.video.vavooto') for f in fs]; z.close()"
+        run: python -c "import os,zipfile; z=zipfile.ZipFile('/tmp/vavoo.zip','w',zipfile.ZIP_DEFLATED); [z.write(os.path.join(r,f), os.path.relpath(os.path.join(r,f),'plugin.video.vavooto')) for r,_,fs in os.walk('plugin.video.vavooto') for f in fs if '__pycache__' not in r and not f.endswith('.pyc')]; z.close()"
       - name: Upload
         uses: actions/upload-artifact@v4
         with:
