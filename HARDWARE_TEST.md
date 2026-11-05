@@ -10,7 +10,7 @@ Status: **not executed** (no hardware access in CI environment).
 ## Manual verification steps
 1. Install addon zip from CI artifact.
 2. Start Kodi, open addon, verify main menu loads (no import errors).
-3. Play a VAVOO live channel -> verify ffmpegdirect inputstream starts (MPEG-TS/HLS).
+3. Play a VAVOO live channel -> verify internal Kodi 18.3 ffmpeg inputstream starts (inputstream.ffmpeg; MPEG-TS/HLS). Note: AlexELEC 3.3.3 ships no inputstream.ffmpegdirect package; internal ffmpeg inputstream is used.
 4. Play a VOD item -> verify inputstream.adaptive starts.
 5. Check Kodi log for Python tracebacks.
 
