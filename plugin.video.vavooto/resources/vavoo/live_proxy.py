@@ -745,7 +745,8 @@ def decode_foobarx(raw_text, ext, offset):
         if ext == "woff":
             return raw_text[13:].encode("utf-8")
         elif ext == "bmp":
-            return bytes.fromhex(raw_text[32 + offset:].strip())
+            import binascii
+            return binascii.unhexlify(raw_text[32 + offset:].strip())
         elif ext == "csv":
             sliced = raw_text[8 + offset:]
             lines = sliced.replace("\r\n", "\n").split("\n")
