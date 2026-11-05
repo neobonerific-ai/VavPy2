@@ -18,6 +18,17 @@ try:
 except ImportError:
     import SocketServer as socketserver
 from collections import OrderedDict
+
+def _od_move_to_end(od, key):
+    """Python 2.7 has no OrderedDict.move_to_end; emulate it."""
+    try:
+        od.move_to_end(key)
+    except AttributeError:
+        try:
+            val = od.pop(key)
+        except KeyError:
+            return
+        od[key] = val
 try:
     from http.server import HTTPServer, BaseHTTPRequestHandler
 except ImportError:
@@ -172,7 +183,7 @@ class VavooSession:
         with self.lock:
             data = self.cache.get(seg_url)
             if data is not None:
-                self.cache.move_to_end(seg_url)
+                _od_move_to_end(self.cache, seg_url)
             return data
 
     def _cache_put(self, seg_url, data):
@@ -180,7 +191,7 @@ class VavooSession:
             if seg_url in self.cache:
                 self.cache_bytes -= len(self.cache[seg_url])
             self.cache[seg_url] = data
-            self.cache.move_to_end(seg_url)
+            _od_move_to_end(self.cache, seg_url)
             self.cache_bytes += len(data)
             while self.cache_bytes > PREFETCH_MAX_BYTES and len(self.cache) > 1:
                 _, old = self.cache.popitem(last=False)
