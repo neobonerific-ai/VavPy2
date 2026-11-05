@@ -4,7 +4,18 @@ import urllib3, resolveurl, base64, random, string, xbmcvfs
 import tempfile
 from datetime import datetime
 from hashlib import md5, sha256, sha1
-from dateutil.parser import parse
+try:
+    from dateutil.parser import parse
+except Exception:
+    import datetime as _dt
+    def parse(value):
+        value = str(value).strip()
+        for fmt in ("%Y-%m-%d", "%d.%m.%Y", "%d/%m/%Y", "%Y-%m-%d %H:%M:%S", "%d.%m.%Y %H:%M:%S"):
+            try:
+                return _dt.datetime.strptime(value, fmt)
+            except ValueError:
+                continue
+        raise ValueError("cannot parse date: %r" % value)
 from traceback import format_exc
 from zlib import compress, decompress
 from xbmcgui import ListItem, Dialog, DialogProgress, Window
