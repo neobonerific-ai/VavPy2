@@ -24,6 +24,8 @@ jobs:
         run: python tests/test_linear_lite.py
       - name: live_proxy helper tests
         run: python tests/test_live_proxy_helpers.py
+      - name: live_proxy HLS helper tests
+        run: python tests/test_live_proxy_hls.py
       - name: playback property tests
         run: python tests/test_playback_properties.py
       - name: package zip test
