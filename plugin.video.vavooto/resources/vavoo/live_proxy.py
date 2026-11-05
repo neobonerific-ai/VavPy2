@@ -13,9 +13,15 @@ import base64
 import math
 import time
 import threading
-import socketserver
+try:
+    import socketserver
+except ImportError:
+    import SocketServer as socketserver
 from collections import OrderedDict
-from http.server import HTTPServer, BaseHTTPRequestHandler
+try:
+    from http.server import HTTPServer, BaseHTTPRequestHandler
+except ImportError:
+    from BaseHTTPServer import HTTPServer, BaseHTTPRequestHandler
 
 _proxy_server = None
 _proxy_port = 19888
