@@ -2,9 +2,9 @@
 
 Phase: 1 Setup / Arbeitspaket A (Python 2.7 Port) — in progress
 Branch: kodi18-py2
-Commit: 60aa1b6 (CI pending)
-Last Run: 42049255467 (failure on 17c9d2a; fixed by 60aa1b6)
-Processed Run-IDs: 42041332854, 42042148762, 42043142676, 42044693828, 42045069053, 42048108905, 42049255467
+Commit: 2829a00 (CI pending)
+Last Run: 42050370005 (failure on bbae9bf; fixed by 2829a00)
+Processed Run-IDs: 42041332854, 42042148762, 42043142676, 42044693828, 42045069053, 42048108905, 42049255467, 42050349077, 42050370005
 Last Run: 42045069053 (success, artifact vavoo-py2/vavoo.zip, 30 files, compileall only)
 Open tasks: Source inventory, full Python2 port, HTTP transport, Kodi18 playback, real CI tests, hardware test.
 
