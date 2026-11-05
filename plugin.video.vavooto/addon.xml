@@ -8,7 +8,6 @@
 		<import addon="script.module.resolveurl"/>
 		<import addon="script.module.dateutil"/>
 		<import addon="inputstream.adaptive"/> 
-		<import addon="inputstream.ffmpeg"/> 
 		<import addon="script.module.infotagger"/>
 	</requires>
 	<extension point="xbmc.python.pluginsource" library="resources/main.py">
