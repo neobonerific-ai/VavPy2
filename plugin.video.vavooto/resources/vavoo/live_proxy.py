@@ -51,8 +51,14 @@ def get_httpx():
             tmo = httpx.Timeout(connect=5.0, read=20.0, write=5.0, pool=5.0)
             _httpx_client = httpx.Client(http2=True, follow_redirects=True, timeout=tmo, verify=False)
         except Exception:
-            log("httpx import failed: %s" % format_exc())
-            _httpx_client = False
+            try:
+                import requests
+                session = requests.Session()
+                session.verify = False
+                _httpx_client = session
+            except Exception:
+                log("http client init failed: %s" % format_exc())
+                _httpx_client = False
     return _httpx_client
 
 
