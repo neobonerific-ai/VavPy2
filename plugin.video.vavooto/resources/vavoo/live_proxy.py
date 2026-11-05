@@ -70,7 +70,17 @@ def get_httpx():
 
 # Netzwerkfehler (tote Hosts, DNS-Ausfall, Client-Abbruch) sind im Live-Betrieb
 # normal - nur eine Kurzmeldung, kein seitenlanger Traceback.
-_NET_ERR = (OSError, ConnectionError, TimeoutError)
+_NET_ERR = [OSError, IOError]
+try:
+    import socket as _sock
+    _NET_ERR.append(_sock.error)
+except Exception:
+    pass
+for _exc in ('ConnectionError', 'TimeoutError'):
+    _e = globals().get(_exc)
+    if _e is not None:
+        _NET_ERR.append(_e)
+_NET_ERR = tuple(set(_NET_ERR))
 
 
 def _neterr(prefix, exc):
@@ -1074,7 +1084,7 @@ class ThreadedProxyServer(socketserver.ThreadingMixIn, HTTPServer):
     def handle_error(self, request, client_address):
         # ffmpeg trennt Keep-Alive-Verbindungen hart -> das ist normal, kein Traceback
         exc = sys.exc_info()[1]
-        if isinstance(exc, (ConnectionError, BrokenPipeError, TimeoutError, OSError, ValueError)):
+        if isinstance(exc, _NET_ERR + (ValueError,)):
             return
         log("Proxy Server-Fehler:\n%s" % format_exc())
 
