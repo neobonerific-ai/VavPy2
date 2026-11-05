@@ -23,7 +23,7 @@ def _is_german_language_group(title):
 	if any(flag in raw_title for flag in ("🇦🇹", "🇩🇪", "🇨🇭")):
 		return True
 	normalized_title = unicodedata.normalize("NFKD", raw_title)
-	normalized_title = normalized_title.encode("ascii", "ignore").decode("ascii").casefold()
+	normalized_title = normalized_title.encode("ascii", "ignore").decode("ascii").lower()
 	tokens = set(re.findall(r"[a-z0-9]+", normalized_title))
 	return bool(tokens.intersection({
 		"at", "austria", "austrian", "osterreich",

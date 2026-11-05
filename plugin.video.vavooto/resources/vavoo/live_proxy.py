@@ -1,7 +1,14 @@
 # -*- coding: utf-8 -*-
 from vavoo.utils import *
 import sys
-import urllib.parse
+try:
+    import urllib.parse as _up
+    quote = _up.quote
+    unquote = _up.unquote
+except ImportError:
+    import urllib
+    quote = urllib.quote
+    unquote = urllib.unquote
 import base64
 import math
 import time

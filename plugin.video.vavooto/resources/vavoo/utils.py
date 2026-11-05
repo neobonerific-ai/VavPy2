@@ -8,8 +8,50 @@ from dateutil.parser import parse
 from traceback import format_exc
 from zlib import compress, decompress
 from xbmcgui import ListItem, Dialog, DialogProgress, Window
-from urllib.parse import urlencode, urlparse, parse_qsl, quote_plus, urlsplit, quote, urljoin
-from concurrent.futures import ThreadPoolExecutor, as_completed
+try:
+    # Python 3
+    from urllib.parse import urlencode, urlparse, parse_qsl, quote_plus, urlsplit, quote, urljoin
+except ImportError:
+    # Python 2
+    from urllib import urlencode, quote, quote_plus
+    from urlparse import urlparse, parse_qsl, urlsplit, urljoin
+try:
+    from concurrent.futures import ThreadPoolExecutor, as_completed
+except ImportError:
+    # Python 2 fallback using threading
+    import threading
+    class _Future(object):
+        def __init__(self, fn, *a, **kw):
+            self._result = None
+            self._exc = None
+            self._done = threading.Event()
+            self._thread = threading.Thread(target=self._run, args=(fn, a, kw))
+            self._thread.start()
+        def _run(self, fn, a, kw):
+            try:
+                self._result = fn(*a, **kw)
+            except Exception as e:
+                self._exc = e
+            finally:
+                self._done.set()
+        def result(self):
+            self._done.wait()
+            if self._exc is not None:
+                raise self._exc
+            return self._result
+    class ThreadPoolExecutor(object):
+        def __init__(self, max_workers=4):
+            self.max_workers = max_workers
+        def submit(self, fn, *a, **kw):
+            return _Future(fn, *a, **kw)
+        def __enter__(self):
+            return self
+        def __exit__(self, *a):
+            return False
+    def as_completed(fs):
+        for f in fs:
+            f._done.wait()
+        return list(fs)
 try:
 	from infotagger.listitem import ListItemInfoTag
 	tagger = True
@@ -312,7 +354,12 @@ def set_cache(key, value, timeout=False):
 		fd, temp_path = tempfile.mkstemp(dir=cachepath)
 		with os.fdopen(fd, mode) as cache_file:
 			cache_file.write(payload)
-		os.replace(temp_path, file_path)
+		if hasattr(os, "replace"):
+			os.replace(temp_path, file_path)
+		else:
+			if os.path.exists(file_path):
+				os.remove(file_path)
+			os.rename(temp_path, file_path)
 	except Exception:
 		if temp_path and os.path.exists(temp_path):
 			os.remove(temp_path)
