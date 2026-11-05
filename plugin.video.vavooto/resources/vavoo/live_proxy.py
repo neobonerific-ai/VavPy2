@@ -55,9 +55,9 @@ def get_httpx():
         try:
             import requests
             session = requests.Session()
-            session.verify = False
-            # kurze Timeouts: ein toter Host darf den Prefetch-/Request-Pfad nicht minutenlang blockieren
-            session.timeout = (5.0, 20.0)
+            # TLS-Verifikation standardmäßig aktiviert (Sicherheit).
+            # session.timeout ist keine wirksame Standard-Einstellung; Timeouts
+            # werden an jeder Aufrufstelle explizit übergeben.
             _httpx_client = session
         except Exception:
             log("http client init failed: %s" % format_exc())
@@ -160,7 +160,8 @@ class VavooSession:
 
     def start(self):
         if self.prefetch:
-            self.thread = threading.Thread(target=self._run, daemon=True)
+            self.thread = threading.Thread(target=self._run)
+            self.thread.daemon = True
             self.thread.start()
 
     def touch(self):
@@ -214,7 +215,7 @@ class VavooSession:
             return None
         url = self.m3u8_url
         try:
-            r = client.get(url, headers=self.pl_headers)
+            r = client.get(url, headers=self.pl_headers, timeout=(5.0, 20.0))
         except Exception:
             r = None
 
@@ -236,7 +237,7 @@ class VavooSession:
                 return None
             url = self.m3u8_url
             try:
-                r = client.get(url, headers=self.pl_headers)
+                r = client.get(url, headers=self.pl_headers, timeout=(5.0, 20.0))
             except Exception:
                 r = None
             if r is None or r.status_code != 200 or "#EXTM3U" not in r.text[:512]:
@@ -281,7 +282,7 @@ class VavooSession:
         try:
             client = get_httpx()
             if client:
-                r = client.get(seg_url, headers=self.seg_headers)
+                r = client.get(seg_url, headers=self.seg_headers, timeout=(5.0, 20.0))
                 if r.status_code == 200 and r.content:
                     data = r.content
         except Exception as exc:
@@ -522,7 +523,8 @@ class StalkerTsSession:
         return cleaned
 
     def start(self):
-        self.thread = threading.Thread(target=self._run, daemon=True)
+        self.thread = threading.Thread(target=self._run)
+        self.thread.daemon = True
         self.thread.start()
 
     def touch(self):
@@ -830,7 +832,7 @@ class UnifiedLiveProxyHandler(BaseHTTPRequestHandler):
     def _passthrough(self, client, url, req_headers, ctype):
         want_range = bool(self.headers.get("Range"))
         try:
-            with client.get(url, headers=req_headers, stream=True) as r:
+            with client.get(url, headers=req_headers, stream=True, timeout=(5.0, 20.0)) as r:
                 if r.status_code != 200:
                     self._fail(502, "Upstream %s" % r.status_code)
                     return
@@ -870,7 +872,7 @@ class UnifiedLiveProxyHandler(BaseHTTPRequestHandler):
             self._fail(502, "HTTP client unavailable")
             return
         try:
-            with client.get(seg_url, headers=sess.seg_headers, stream=True) as r:
+            with client.get(seg_url, headers=sess.seg_headers, stream=True, timeout=(5.0, 20.0)) as r:
                 if r.status_code != 200:
                     self._fail(504, "Segment %s" % r.status_code)
                     return
@@ -953,7 +955,7 @@ class UnifiedLiveProxyHandler(BaseHTTPRequestHandler):
             if parsed.path == "/nydus_live.m3u8":
                 headers = {"User-Agent": BROWSER_UA, "Referer": ref or "https://nydus.org/"}
                 try:
-                    r = client.get(target_url, headers=headers)
+                    r = client.get(target_url, headers=headers, timeout=(5.0, 20.0))
                 except Exception as exc:
                     _neterr("Nydus Playlist Fehler", exc)
                     self._fail(502, "Upstream nicht verfuegbar")
@@ -975,7 +977,7 @@ class UnifiedLiveProxyHandler(BaseHTTPRequestHandler):
                 headers = {"User-Agent": BROWSER_UA, "Referer": ref or "https://nydus.org/"}
                 ext = params.get("ext", "csv")
                 try:
-                    r = client.get(target_url, headers=headers)
+                    r = client.get(target_url, headers=headers, timeout=(5.0, 20.0))
                 except Exception as exc:
                     _neterr("Nydus Segment Fehler", exc)
                     self._fail(502, "Upstream nicht verfuegbar")
@@ -1007,7 +1009,7 @@ class UnifiedLiveProxyHandler(BaseHTTPRequestHandler):
                 src_b64 = params.get("src", "")
                 pl_headers = {"User-Agent": "MediaHubMX/2", "Accept-Encoding": "gzip"}
                 try:
-                    r = client.get(target_url, headers=pl_headers)
+                    r = client.get(target_url, headers=pl_headers, timeout=(5.0, 20.0))
                 except Exception:
                     r = None
                 if src_b64 and (r is None or r.status_code != 200 or "#EXTM3U" not in r.text[:512]):
@@ -1015,7 +1017,7 @@ class UnifiedLiveProxyHandler(BaseHTTPRequestHandler):
                     if fresh:
                         target_url = fresh
                         try:
-                            r = client.get(target_url, headers=pl_headers)
+                            r = client.get(target_url, headers=pl_headers, timeout=(5.0, 20.0))
                         except Exception:
                             r = None
                 if r is None:
@@ -1095,7 +1097,8 @@ def ensure_proxy():
         for port in (19888, 19889, 19890, 19891, 19892, 19893, 19894, 19895):
             try:
                 server = ThreadedProxyServer(("127.0.0.1", port), UnifiedLiveProxyHandler)
-                t = threading.Thread(target=server.serve_forever, daemon=True)
+                t = threading.Thread(target=server.serve_forever)
+                t.daemon = True
                 t.start()
                 _proxy_server = server
                 _proxy_port = port

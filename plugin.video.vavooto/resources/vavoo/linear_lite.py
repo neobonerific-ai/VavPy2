@@ -190,7 +190,7 @@ def _resolve_nydus_hd(nydus_id):
     try:
         url1 = "https://nydus.org/stream/embedplayer_hq.php?id={}".format(nydus_id)
         h1 = {"User-Agent": BROWSER_UA, "Referer": "https://nydus.org/stream/live/{}/".format(nydus_id)}
-        r1 = client.get(url1, headers=h1)
+        r1 = client.get(url1, headers=h1, timeout=(5.0, 20.0))
         zdec = re.search(r"zdec\s*=\s*['\"]([^'\"]+)", r1.text)
         if not zdec:
             return None, None
@@ -206,7 +206,7 @@ def _resolve_nydus_hd(nydus_id):
 
         h2 = dict(h1)
         h2["Referer"] = "https://nydus.org/"
-        r2 = client.get(iframe_url, headers=h2)
+        r2 = client.get(iframe_url, headers=h2, timeout=(5.0, 20.0))
         m_embed = re.search(r"const\s+EMBED\s*=\s*({[^;]+});", r2.text)
         if not m_embed:
             return None, None
@@ -219,7 +219,7 @@ def _resolve_nydus_hd(nydus_id):
         m3u8_url = "{}/conv/go/{}/chunks.m3u81a.doc".format(origin, ch)
 
         h3 = {"User-Agent": BROWSER_UA, "Referer": origin + "/"}
-        r3 = client.get(m3u8_url, headers=h3)
+        r3 = client.get(m3u8_url, headers=h3, timeout=(5.0, 20.0))
         if "#EXTM3U" not in r3.text:
             return None, None
 
