@@ -24,7 +24,7 @@ import xbmcvfs
 xbmcvfs.translatePath = lambda p: p
 
 # Third-party / optional mocks for smoke import
-for m in ('resolveurl', 'httpx'):
+for m in ('resolveurl', 'httpx', 'requests'):
     if m not in sys.modules:
         sys.modules[m] = _Mod()
 
