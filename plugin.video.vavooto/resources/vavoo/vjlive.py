@@ -459,23 +459,23 @@ def livePlay(name, type=None, group=None, retry='0', idx=None):
 	infoLabels = {"title": title, "plot": plot_title}
 	o = ListItem(name)
 	log("Spiele %s" % url)
-	# Live-TV laeuft ueber inputstream.ffmpegdirect. MPEG-TS ist kein Manifest-
+	# Live-TV laeuft ueber inputstream.ffmpeg. MPEG-TS ist kein Manifest-
 	# Stream und darf daher nicht als HLS/Timeshift deklariert werden.
 	is_mpeg_ts = is_mpeg_ts_url(url)
-	o.setProperty('inputstream', 'inputstream.ffmpegdirect')
-	o.setProperty('inputstreamaddon', 'inputstream.ffmpegdirect')
-	o.setProperty('inputstream.ffmpegdirect.is_realtime_stream', 'true')
-	o.setProperty('inputstream.ffmpegdirect.open_mode', 'ffmpeg')
+	o.setProperty('inputstream', 'inputstream.ffmpeg')
+	o.setProperty('inputstreamaddon', 'inputstream.ffmpeg')
+	o.setProperty('inputstream.ffmpeg.is_realtime_stream', 'true')
+	o.setProperty('inputstream.ffmpeg.open_mode', 'ffmpeg')
 	if is_mpeg_ts:
 		o.setMimeType('video/mp2t')
 	else:
 		o.setMimeType('application/x-mpegURL')
-		o.setProperty('inputstream.ffmpegdirect.stream_mode', 'timeshift')
-		o.setProperty('inputstream.ffmpegdirect.manifest_type', 'hls')
-	o.setProperty('inputstream.ffmpegdirect.protocol_whitelist','http,https,tcp,tls,crypto')
+		o.setProperty('inputstream.ffmpeg.stream_mode', 'timeshift')
+		o.setProperty('inputstream.ffmpeg.manifest_type', 'hls')
+	o.setProperty('inputstream.ffmpeg.protocol_whitelist','http,https,tcp,tls,crypto')
 	stream_opts = ':'.join(['http_persistent=1','multiple_requests=1','reconnect=1','reconnect_streamed=1','reconnect_delay_max=2','timeout=30000000'])
-	o.setProperty('inputstream.ffmpegdirect.stream_opts',stream_opts)
-	o.setProperty('inputstream.ffmpegdirect.user_agent', 'libmpv')
+	o.setProperty('inputstream.ffmpeg.stream_opts',stream_opts)
+	o.setProperty('inputstream.ffmpeg.user_agent', 'libmpv')
 	if headers:
 		url += "|{}".format(headers)
 	o.setPath(url)
