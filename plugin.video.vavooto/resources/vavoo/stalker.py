@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 import re
+import time
 from concurrent.futures import ThreadPoolExecutor, as_completed
 import unicodedata
 
@@ -257,7 +258,7 @@ class StalkerPortal:
 		phone = info.get("phone")
 		if phone:
 			try:
-				if time.time() + 43200 > datetime.timestamp(parse(phone)):
+				if time.time() + 43200 > time.mktime(parse(phone).timetuple()):
 					return "EXPIRED"
 			except Exception:
 				pass
@@ -320,7 +321,7 @@ class StalkerPortal:
 			phone = account_info.get("phone")
 			if phone:
 				try:
-					expired = time.time() + 43200 > datetime.timestamp(parse(phone))
+					expired = time.time() + 43200 > time.mktime(parse(phone).timetuple())
 				except Exception:
 					expired = False
 				if expired:
