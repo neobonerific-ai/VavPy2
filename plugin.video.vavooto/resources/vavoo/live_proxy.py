@@ -829,7 +829,7 @@ class UnifiedLiveProxyHandler(BaseHTTPRequestHandler):
     def _passthrough(self, client, url, req_headers, ctype):
         want_range = bool(self.headers.get("Range"))
         try:
-            with client.stream("GET", url, headers=req_headers) as r:
+            with client.get(url, headers=req_headers, stream=True) as r:
                 if r.status_code != 200:
                     self._fail(502, "Upstream %s" % r.status_code)
                     return
@@ -841,7 +841,7 @@ class UnifiedLiveProxyHandler(BaseHTTPRequestHandler):
                     self.send_header("Accept-Ranges", "bytes")
                     self.send_header("Access-Control-Allow-Origin", "*")
                     self.end_headers()
-                    for chunk in r.iter_bytes():
+                    for chunk in r.iter_content(chunk_size=8192):
                         if not chunk:
                             continue
                         try:
@@ -850,7 +850,7 @@ class UnifiedLiveProxyHandler(BaseHTTPRequestHandler):
                             self.close_connection = True
                             return
                 else:
-                    self._respond_bytes(r.read(), ctype)
+                    self._respond_bytes(r.content, ctype)
         except Exception as exc:
             _neterr("Proxy Passthrough Fehler", exc)
             self._fail(502, "Upstream Fehler")
@@ -869,13 +869,13 @@ class UnifiedLiveProxyHandler(BaseHTTPRequestHandler):
             self._fail(502, "HTTP client unavailable")
             return
         try:
-            with client.stream("GET", seg_url, headers=sess.seg_headers) as r:
+            with client.get(seg_url, headers=sess.seg_headers, stream=True) as r:
                 if r.status_code != 200:
                     self._fail(504, "Segment %s" % r.status_code)
                     return
                 clen = r.headers.get("content-length")
                 if real_range or not clen:
-                    data = r.read()
+                    data = r.content
                     if clen and len(data) == int(clen):
                         sess._cache_put(seg_url, data)
                     elif not clen and data:
@@ -891,7 +891,7 @@ class UnifiedLiveProxyHandler(BaseHTTPRequestHandler):
                 self.end_headers()
                 buf = bytearray()
                 broken = False
-                for chunk in r.iter_bytes():
+                for chunk in r.iter_content(chunk_size=8192):
                     if not chunk:
                         continue
                     buf += chunk
