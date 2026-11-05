@@ -3,6 +3,7 @@ from vavoo.utils import *
 try:
     import html
 except ImportError:
+    import cgi
     import cgi as html
     def _unescape(s):
         return cgi.unescape(s)
