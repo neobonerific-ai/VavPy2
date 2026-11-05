@@ -18,6 +18,8 @@ jobs:
         run: python tests/smoke_import.py
       - name: HTTP transport tests
         run: python tests/test_http_transport.py
+      - name: Kodi18 compat tests
+        run: python tests/test_kodi18_compat.py
       - name: Package
         run: python -c "import os,zipfile; z=zipfile.ZipFile('/tmp/vavoo.zip','w',zipfile.ZIP_DEFLATED); [z.write(os.path.join(r,f), os.path.relpath(os.path.join(r,f),'plugin.video.vavooto')) for r,_,fs in os.walk('plugin.video.vavooto') for f in fs]; z.close()"
       - name: Upload
