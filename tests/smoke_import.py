@@ -7,20 +7,26 @@ class _Mod(object):
     def __getattr__(self, name):
         def _f(*a, **k): return None
         return _f
-for m in ('xbmc', 'xbmcvfs', 'xbmcaddon', 'xbmcgui'):
+for m in ('xbmc', 'xbmcvfs', 'xbmcaddon', 'xbmcgui', 'xbmcplugin'):
     sys.modules[m] = _Mod()
 
 import xbmcaddon
-class Addon(object):
+class Addon(_Mod):
     def getAddonInfo(self, k): return '/tmp/addon'
     def getSetting(self, k): return ''
+    def setSetting(self, k, v): return None
 xbmcaddon.Addon = lambda *a, **k: Addon()
+# Window mock
+import xbmcgui
+xbmcgui.Window = lambda *a, **k: _Mod()
+# translatePath passthrough for mocks
+import xbmcvfs
+xbmcvfs.translatePath = lambda p: p
 
-# infotagger optional
-try:
-    import infotagger  # noqa
-except Exception:
-    pass
+# Third-party / optional mocks for smoke import
+for m in ('resolveurl', 'httpx'):
+    if m not in sys.modules:
+        sys.modules[m] = _Mod()
 
 mods = ['vavoo.utils', 'vavoo.live_proxy', 'vavoo.vjlive', 'vavoo.vjackson',
         'vavoo.stalker', 'vavoo.linear_lite', 'vavoo.vavoo_tv', 'main']
