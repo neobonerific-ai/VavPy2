@@ -20,7 +20,17 @@ def _stalker_net_error(exc):
 	))
 
 def _is_german_language_group(title):
-	raw_title = str(title)
+	try:
+		_text_type = unicode
+	except NameError:
+		_text_type = str
+	if isinstance(title, _text_type):
+		raw_title = title
+	else:
+		try:
+			raw_title = _text_type(title)
+		except Exception:
+			raw_title = _text_type(title, "utf-8", "replace") if isinstance(title, bytes) else str(title)
 	if any(flag in raw_title for flag in ("🇦🇹", "🇩🇪", "🇨🇭")):
 		return True
 	normalized_title = unicodedata.normalize("NFKD", raw_title)
