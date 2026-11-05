@@ -193,9 +193,28 @@ def request(method, url, retries=2, timeout=15, **kwargs):
 			monitor.waitForAbort(min(2 ** attempt, 4))
 
 def request_json(method, url, retries=2, timeout=15, **kwargs):
-	response = request(method, url, retries=retries, timeout=timeout, **kwargs)
-	response.raise_for_status()
-	return response.json()
+	try:
+		response = request(method, url, retries=retries, timeout=timeout, **kwargs)
+		response.raise_for_status()
+		try:
+			return response.json()
+		except ValueError:
+			log("Invalid JSON from %s: %s" % (url, (response.text or "")[:120].replace("\n", " ")))
+			raise
+	except requests.HTTPError as exc:
+		resp = getattr(exc, "response", None)
+		status = getattr(resp, "status_code", None)
+		preview = ""
+		if resp is not None:
+			try:
+				preview = (resp.text or "")[:120].replace("\n", " ")
+			except Exception:
+				preview = ""
+		log("HTTP error %s for %s %s: %s" % (status, method, url, preview))
+		raise
+	except requests.RequestException as exc:
+		log("Connection/timeout error for %s %s: %s" % (method, url, repr(exc)[:120]))
+		raise
 
 def _decode_cache_bytes(raw_data):
 	try:
@@ -285,7 +304,8 @@ def _auth_signature_valid_until(signature):
 
 def _request_auth_signature(payload_builder, headers, source, deadline):
 	attempt = 0
-	while True:
+	max_attempts = 3
+	while attempt < max_attempts:
 		remaining = deadline - time.time()
 		if remaining < 3:
 			log("MediaHubMX signature source %s: Zeitbudget erschoepft nach %s Versuchen" % (source, attempt))
@@ -297,8 +317,8 @@ def _request_auth_signature(payload_builder, headers, source, deadline):
 				"https://www.vypn.net/api/app/ping",
 				json=payload_builder(),
 				headers=headers,
-				timeout=min(15, max(4, int(remaining))),
-				retries=1,
+				timeout=min(10, max(4, int(remaining))),
+				retries=0,
 				verify=False,
 			)
 			signature = req.get("sig") or req.get("addonSig") or req.get("signature") or req.get("mediahubmxSignature") or req.get("mediahubmx-signature")
@@ -307,8 +327,20 @@ def _request_auth_signature(payload_builder, headers, source, deadline):
 				log("Received valid MediaHubMX signature from %s, valid for %s seconds" % (source, int((valid_until - time.time() * 1000) / 1000)))
 				return signature, valid_until
 			log("Rejected invalid or expired MediaHubMX signature from %s (Versuch %s)" % (source, attempt))
-		except Exception:
-			log("MediaHubMX signature source %s Versuch %s fehlgeschlagen: %s" % (source, attempt, repr(sys.exc_info()[1])[:150]))
+		except Exception as exc:
+			preview = ""
+			resp = getattr(exc, "response", None)
+			if resp is not None:
+				try:
+					preview = " HTTP %s: %s" % (resp.status_code, (resp.text or "")[:120].replace("\n", " "))
+				except Exception:
+					preview = ""
+			log("MediaHubMX signature source %s Versuch %s fehlgeschlagen: %s%s" % (source, attempt, repr(exc)[:120], preview))
+		# Backoff, but never exceed remaining budget.
+		backoff = min(2 ** (attempt - 1), 4)
+		if time.time() + backoff < deadline:
+			monitor.waitForAbort(backoff)
+	return None, None
 
 def getAuthSignature():
 	cached_signature = home.getProperty(_AUTH_SIGNATURE_PROPERTY)

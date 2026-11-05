@@ -129,12 +129,20 @@ def catalog_list(params):
 		cursor = None
 	elif isinstance(cursor, str) and cursor.isdigit():
 		cursor = int(cursor)
+	signature = getAuthSignature()
+	if not signature:
+		log("MediaHubMX signature unavailable; catalog request skipped")
+		try:
+			dialog.notification("VAVOO.TO", "MediaHubMX-Signatur nicht verfuegbar", xbmcgui.NOTIFICATION_ERROR, 4000)
+		except Exception:
+			pass
+		return {"data": [], "next": None}
 	_headers = {
 		"user-agent": "MediaHubMX/2",
 		"accept": "application/json",
 		"content-type": "application/json; charset=utf-8",
 		"accept-encoding": "gzip",
-		"mediahubmx-signature": getAuthSignature()
+		"mediahubmx-signature": signature
 	}
 	_data = {
 		"language": "de",
@@ -148,7 +156,15 @@ def catalog_list(params):
 		"cursor": cursor,
 		"clientVersion": "3.1.0"
 	}
-	req = request_json("POST", "https://vavoo.to/mediahubmx-catalog.json", json=_data, headers=_headers, timeout=10, retries=1)
+	try:
+		req = request_json("POST", "https://vavoo.to/mediahubmx-catalog.json", json=_data, headers=_headers, timeout=10, retries=1)
+	except Exception as exc:
+		log("Catalog request failed: %s" % repr(exc)[:200])
+		try:
+			dialog.notification("VAVOO.TO", "Katalog nicht ladbar", xbmcgui.NOTIFICATION_ERROR, 4000)
+		except Exception:
+			pass
+		return {"data": [], "next": None}
 	items = req.get("items", req.get("data", []))
 	media_type = "series" if catalog_id == "tmdb.series" else "movie"
 	result = []
