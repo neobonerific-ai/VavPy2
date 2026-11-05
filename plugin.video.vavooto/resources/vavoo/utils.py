@@ -1,6 +1,14 @@
 # -*- coding: utf-8 -*-
 import xbmcgui, xbmcaddon, sys, xbmc, os, time, json, xbmcplugin, requests, re, uuid
-import urllib3, resolveurl, base64, random, string, xbmcvfs
+import base64, random, string, xbmcvfs
+try:
+    import urllib3
+except Exception:
+    urllib3 = None
+try:
+    import resolveurl
+except Exception:
+    resolveurl = None
 import tempfile
 from datetime import datetime
 from hashlib import md5, sha256, sha1
