@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 import re
 import time
-from concurrent.futures import ThreadPoolExecutor, as_completed
+import threading
 import unicodedata
 
 from vavoo.utils import *
@@ -499,13 +499,41 @@ def prefilter_macs(url, maclist, faultymaclist, limit=12, prog=None):
 	if not pool:
 		return "EMPTY", [], [], []
 	results = []
+	_threads = []
+	_results_lock = threading.Lock()
+	def _worker(m):
+		try:
+			r = _probe_one(url, m)
+		except Exception:
+			log(format_exc())
+			r = (m, "NETWORK")
+		with _results_lock:
+			results.append(r)
+			if prog is not None:
+				prog.update(min(35, int(len(results) * 35 / len(pool))), "Pruefe Mac Adressen %s/%s" % (len(results), len(pool)))
 	try:
-		with ThreadPoolExecutor(max_workers=min(3, len(pool))) as ex:
-			futures = [ex.submit(_probe_one, url, m) for m in pool]
-			for fut in as_completed(futures):
-				results.append(fut.result())
-				if prog is not None:
-					prog.update(min(35, int(len(results) * 35 / len(pool))), "Pruefe Mac Adressen %s/%s" % (len(results), len(pool)))
+		maxw = min(3, len(pool))
+		# run with a simple bounded thread pool
+		import Queue as _Queue
+		q = _Queue.Queue()
+		for m in pool:
+			q.put(m)
+		def _run():
+			while True:
+				try:
+					m = q.get_nowait()
+				except _Queue.Empty:
+					return
+				_worker(m)
+				q.task_done()
+		threads = []
+		for _ in range(maxw):
+			t = threading.Thread(target=_run)
+			t.daemon = True
+			t.start()
+			threads.append(t)
+		for t in threads:
+			t.join()
 	except Exception:
 		log(format_exc())
 		results = [_probe_one(url, m) for m in pool]
