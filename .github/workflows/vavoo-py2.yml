@@ -15,7 +15,7 @@ jobs:
       - name: Compile Python 2
         run: python -m compileall plugin.video.vavooto
       - name: Package
-        run: cd plugin.video.vavooto && zip -r /tmp/vavoo.zip . && ls -l /tmp/vavoo.zip
+        run: python -c "import os,zipfile; z=zipfile.ZipFile('/tmp/vavoo.zip','w',zipfile.ZIP_DEFLATED); [z.write(os.path.join(r,f), os.path.relpath(os.path.join(r,f),'plugin.video.vavooto')) for r,_,fs in os.walk('plugin.video.vavooto') for f in fs]; z.close()"
       - name: Upload
         uses: actions/upload-artifact@v4
         with:
