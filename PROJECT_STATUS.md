@@ -1,25 +1,25 @@
 # Project Status
 
-Phase: 1 Setup / Arbeitspaket A (Python 2.7 Port) + B (HTTP transport) + D (Tests) — in progress
+Phase: 2 Stabilization — A/B/C/D complete, E documented (not executed)
 Branch: kodi18-py2
-Commit: (pending) inputstream.ffmpeg for Kodi18 Leia
-Last Run: 42077077358 (success)
-Processed Run-IDs: 42041332854, 42042148762, 42043142676, 42044693828, 42045069053, 42048108905, 42049255467, 42050349077, 42050370005, 42052501214, 42053615632, 42053637740, 42054759902, 42054788404, 42056007788, 42056025407, 42057196681, 42058562077, 42059735949, 42060938503, 42061898948, 42062761835, 42062806606, 42063869356, 42063919705, 42065146201, 42065194381, 42067497762, 42067613948, 42068835015, 42069223041, 42070107242, 42070133223, 42071363910, 42072484887, 42072502462, 42074870068, 42075968738
+Commit: 8edfca2 Use inputstream.ffmpeg for Kodi18 Leia playback
+Last Run: 42078150318 (success)
+Processed Run-IDs: 42041332854, 42042148762, 42043142676, 42044693828, 42045069053, 42048108905, 42049255467, 42050349077, 42050370005, 42052501214, 42053615632, 42053637740, 42054759902, 42054788404, 42056007788, 42056025407, 42057196681, 42058562077, 42059735949, 42060938503, 42061898948, 42062761835, 42062806606, 42063869356, 42063919705, 42065146201, 42065194381, 42067497762, 42067613948, 42068835015, 42069223041, 42070107242, 42070133223, 42071363910, 42072484887, 42072502462, 42074870068, 42075968738, 42078150318
 
 Open tasks: Source inventory, full Python2 port, HTTP transport (HTTPX entfernt done, Caller prüfen), Kodi18 playback, real CI tests, hardware test.
 
 ## Entwicklungspakete
-- A Vollständiger Python-2.7-Port (in progress)
-- B HTTPX/Netzwerktransport (in progress: get_httpx requests-only)
-- C Kodi-18-Integration (offen)
-- D Funktionstests/CI (in progress)
-- E Hardwaretest (offen / dokumentieren)
+- A Vollständiger Python-2.7-Port (abgeschlossen)
+- B HTTPX/Netzwerktransport (abgeschlossen: requests-only)
+- C Kodi-18-Integration (abgeschlossen: inputstream.ffmpeg)
+- D Funktionstests/CI (abgeschlossen)
+- E Hardwaretest (dokumentiert, nicht ausgeführt)
 
 ## Nächste konkrete Aufgabe
-Paket D: weitere reale CI-Tests (HTTP/Proxy/HLS, Dependency, ZIP) erweitern; Paket E Hardwaretest dokumentieren.
+Keine offene automatisierbare Aufgabe. Hardwaretest manuell gemäß HARDWARE_TEST.md.
 
 ## Letzter geprüfter Commit
-HEAD (pending push)
+HEAD (8edfca2)
 
 ## Tatsächlich bestandene Tests
 - compileall (Python 2.7 container) — Syntax OK.
