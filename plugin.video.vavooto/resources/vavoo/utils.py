@@ -79,7 +79,10 @@ except Exception:
 	ListItemInfoTag = None
 
 def translatePath(*args):
-	return xbmcvfs.translatePath(*args)
+    fn = getattr(xbmcvfs, "translatePath", None)
+    if callable(fn):
+        return fn(*args)
+    return xbmc.translatePath(*args)
 
 def exists(*args):
 	return os.path.exists(translatePath(*args))
