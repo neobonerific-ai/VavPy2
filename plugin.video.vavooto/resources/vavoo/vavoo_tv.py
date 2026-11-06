@@ -5,7 +5,7 @@ def vavoo_groups():
 	log("Getting VAVOO groups and md5")
 	groups=[]
 	a = request("GET", "https://vavoo.to/live2/index?output=json", timeout=10, retries=1).text
-	hash = md5(a.encode()).hexdigest()
+	hash = md5(a.encode("utf-8")).hexdigest()
 	chans = json.loads(a)
 	for c in chans:
 		if c["group"] not in groups: groups.append(c["group"])

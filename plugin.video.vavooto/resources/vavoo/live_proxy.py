@@ -13,6 +13,7 @@ import base64
 import math
 import time
 import threading
+_monotonic = getattr(time, "monotonic", time.time)
 try:
     import socketserver
 except ImportError:
@@ -489,7 +490,7 @@ def _pat_pmt_pid(packet):
 def _trim_reconnect_overlap(buffer, reference_pts, psi):
     complete = (len(buffer) // 188) * 188
     for pos in range(0, complete, 188):
-        packet = bytes(buffer[pos:pos + 188])
+        packet = bytearray(buffer[pos:pos + 188])
         pid = ((packet[1] & 0x1F) << 8) | packet[2]
         if pid == 0:
             psi["pat"] = packet
@@ -502,7 +503,7 @@ def _trim_reconnect_overlap(buffer, reference_pts, psi):
             psi["sdt"] = packet
         pts = _packet_video_pts(packet)
         if pts is not None and _pts_after(pts, reference_pts):
-            prefix = b"".join(psi[key] for key in ("pat", "pmt", "sdt") if psi.get(key))
+            prefix = b"".join(bytes(psi[key]) for key in ("pat", "pmt", "sdt") if psi.get(key))
             return bytearray(prefix) + buffer[pos:], True
     if complete:
         del buffer[:complete]
@@ -600,9 +601,9 @@ class StalkerTsSession:
             buffer = bytearray()
             aligned = False
             received = False
-            segment_started = time.monotonic()
+            segment_started = _monotonic()
             resume_pts = self.last_video_pts if self.pending_discontinuity else None
-            resume_started = time.monotonic()
+            resume_started = _monotonic()
             resume_psi = {}
             try:
                 response = request(
@@ -626,9 +627,9 @@ class StalkerTsSession:
                         if offset:
                             del buffer[:offset]
                         aligned = True
-                        segment_started = time.monotonic()
+                        segment_started = _monotonic()
 
-                    now = time.monotonic()
+                    now = _monotonic()
                     if resume_pts is not None:
                         buffer, resumed = _trim_reconnect_overlap(buffer, resume_pts, resume_psi)
                         if not resumed and now - resume_started < STALKER_RESUME_TIMEOUT:
@@ -657,7 +658,7 @@ class StalkerTsSession:
 
             complete = (len(buffer) // 188) * 188 if aligned else 0
             if complete and resume_pts is None:
-                now = time.monotonic()
+                now = _monotonic()
                 self._add_segment(
                     bytes(buffer[:complete]), now - segment_started,
                     self.pending_discontinuity
@@ -814,7 +815,7 @@ class UnifiedLiveProxyHandler(BaseHTTPRequestHandler):
             return None
 
     def _respond_text(self, text, ctype):
-        body = text.encode("utf-8") if isinstance(text, str) else text
+        body = text.encode("utf-8") if isinstance(text, text_type) else text
         self.send_response(200)
         self.send_header("Content-Type", ctype)
         self.send_header("Content-Length", str(len(body)))
@@ -1127,10 +1128,10 @@ def ensure_proxy():
 
 
 def get_vavoo_proxy_url(m3u8_url, vavoo_link=""):
-    if not m3u8_url or not isinstance(m3u8_url, str):
+    if not m3u8_url or not isinstance(m3u8_url, string_types):
         return m3u8_url
     port = ensure_proxy()
-    if not isinstance(vavoo_link, str):
+    if not isinstance(vavoo_link, string_types):
         vavoo_link = ""
     extra = ""
     if vavoo_link:
@@ -1150,7 +1151,7 @@ def get_vavoo_proxy_url(m3u8_url, vavoo_link=""):
 
 def get_stalker_proxy_url(stream_url, headers=None, channel=None):
     """Registriert einen endlichen Stalker-TS-Link als fortlaufende lokale HLS-Quelle."""
-    if not stream_url or not isinstance(stream_url, str):
+    if not stream_url or not isinstance(stream_url, string_types):
         return stream_url
     port = ensure_proxy()
     try:
@@ -1162,7 +1163,7 @@ def get_stalker_proxy_url(stream_url, headers=None, channel=None):
 
 
 def get_nydus_proxy_url(m3u8_url, offset=22, origin=""):
-    if not m3u8_url or not isinstance(m3u8_url, str):
+    if not m3u8_url or not isinstance(m3u8_url, string_types):
         return m3u8_url
     port = ensure_proxy()
     ref_param = "&ref={}/".format(quote_plus(origin)) if origin else ""

@@ -194,11 +194,11 @@ def _resolve_nydus_hd(nydus_id):
         zdec = re.search(r"zdec\s*=\s*['\"]([^'\"]+)", r1.text)
         if not zdec:
             return None, None
-        s1 = base64.b64decode(zdec.group(1)).decode("utf-8", errors="ignore")
+        s1 = base64.b64decode(zdec.group(1)).decode("utf-8", "ignore")
         m_atob = re.search(r"atob\(['\"]([^'\"]+)", s1)
         if not m_atob:
             return None, None
-        iframe_url = base64.b64decode(m_atob.group(1)).decode("utf-8", errors="ignore")
+        iframe_url = base64.b64decode(m_atob.group(1)).decode("utf-8", "ignore")
 
         if ".m3u8" in iframe_url.lower():
             stream_headers = {"User-Agent": BROWSER_UA, "Referer": "https://nydus.org/stream/live/{}/".format(nydus_id)}

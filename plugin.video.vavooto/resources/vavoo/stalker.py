@@ -20,18 +20,8 @@ def _stalker_net_error(exc):
 	))
 
 def _is_german_language_group(title):
-	try:
-		_text_type = unicode
-	except NameError:
-		_text_type = str
-	if isinstance(title, _text_type):
-		raw_title = title
-	else:
-		try:
-			raw_title = _text_type(title)
-		except Exception:
-			raw_title = _text_type(title, "utf-8", "replace") if isinstance(title, bytes) else str(title)
-	if any(flag in raw_title for flag in ("🇦🇹", "🇩🇪", "🇨🇭")):
+	raw_title = to_text(title)
+	if any(flag in raw_title for flag in (u"\U0001F1E6\U0001F1F9", u"\U0001F1E9\U0001F1EA", u"\U0001F1E8\U0001F1ED")):
 		return True
 	normalized_title = unicodedata.normalize("NFKD", raw_title)
 	normalized_title = normalized_title.encode("ascii", "ignore").decode("ascii").lower()
@@ -121,6 +111,7 @@ class StalkerPortal:
 					a = response.text
 					blocked = response.status_code == 403 or "IP adresiniz engellenmistir." in a
 					failed = response.status_code >= 400 or blocked or "js" not in a
+					if response.status_code in (409, 429, 502, 503, 504): neterr = True
 				except Exception as e:
 					log("Erster Portalversuch fehlgeschlagen: %s" % repr(e)[:150])
 					a = ""
@@ -136,6 +127,7 @@ class StalkerPortal:
 						a = response.text
 						blocked = response.status_code == 403 or "IP adresiniz engellenmistir." in a
 						failed = response.status_code >= 400 or blocked or "js" not in a
+						neterr = response.status_code in (409, 429, 502, 503, 504)
 						if not failed:
 							self.headers = chrome_headers
 							neterr = False
@@ -148,7 +140,11 @@ class StalkerPortal:
 					log("Abbruch: Portal blockiert")
 					return "IP BLOCKED"
 				if "js" in a:
-					return json.loads(a)["js"]
+					try:
+						return json.loads(a)["js"]
+					except (ValueError, KeyError):
+						log("Ungueltige JSON-Antwort vom Portal: %r" % (a[:120],))
+						neterr = True
 				if neterr:
 					# Netz-/Portalproblem -> MAC NICHT als defekt markieren, aber vor
 					# dem naechsten Versuch mit Backoff warten (kein Sofort-Hammern).
@@ -384,7 +380,7 @@ class StalkerPortal:
 						return "NETWORK"
 			if not stream_ok:
 				log("Stalker check: Portal/Login ok, aber kein Test-Stream abspielbar (%s)" % repr(last_err)[:120])
-				detail = last_err if isinstance(last_err, str) else (type(last_err).__name__ if last_err else "kein Stream")
+				detail = last_err if isinstance(last_err, string_types) else (type(last_err).__name__ if last_err else "kein Stream")
 				self.last_reason = "Stream nicht abspielbar (%s)" % detail
 				return "No Stream"
 
@@ -437,12 +433,12 @@ def get_genres():
 	titles, original_titles, ids, preselect = [], [], [], []
 	portal = StalkerPortal(get_cache_or_setting("stalkerurl"), get_cache_or_setting("mac"))
 	gruppen = portal.genres()
-	if not gruppen:
-		log("Keine Stalker-Gruppen vom Portal erhalten")
+	if not gruppen or not isinstance(gruppen, dict):
+		log("Keine Stalker-Gruppen vom Portal erhalten: %r" % (gruppen,))
 		return []
 	for title, groupid in  gruppen.items():
 		original_titles.append(title)
-		titles.append(title.encode("utf-8", "ignore").decode("ascii", "ignore"))
+		titles.append(ascii_only(title))
 		ids.append(groupid)
 	cacheOk, oldgroups = get_cache("stalker_groups")
 	if cacheOk:
@@ -511,6 +507,7 @@ def prefilter_macs(url, maclist, faultymaclist, limit=12, prog=None):
 	results = []
 	_threads = []
 	_results_lock = threading.Lock()
+	_abort = [False]
 	def _worker(m):
 		try:
 			r = _probe_one(url, m)
@@ -519,6 +516,8 @@ def prefilter_macs(url, maclist, faultymaclist, limit=12, prog=None):
 			r = (m, "NETWORK")
 		with _results_lock:
 			results.append(r)
+			# Portal lehnt durchgehend ab (409/403/Timeout) -> restliche MACs nicht mehr hammern
+			if len(results) >= 3 and all(x[1] == "NETWORK" for x in results): _abort[0] = True
 			if prog is not None:
 				prog.update(min(35, int(len(results) * 35 / len(pool))), "Pruefe Mac Adressen %s/%s" % (len(results), len(pool)))
 	try:
@@ -529,7 +528,7 @@ def prefilter_macs(url, maclist, faultymaclist, limit=12, prog=None):
 		for m in pool:
 			q.put(m)
 		def _run():
-			while True:
+			while not _abort[0]:
 				try:
 					m = q.get_nowait()
 				except _Queue.Empty:
