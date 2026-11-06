@@ -10,7 +10,7 @@ def get_stream_source(link):
 		if link.get("source") in ("lite", "2ix2") or link.get("stream_type") in ("2ix2", "nydus"):
 			return "2ix2"
 		return "STALKER"
-	elif isinstance(link, str):
+	elif isinstance(link, string_types):
 		if "vavoo" in link.lower():
 			return "VAVOO"
 		elif "2ix2" in link.lower() or "nydus" in link.lower():
@@ -124,6 +124,7 @@ def _valid_audio_frame(data, stream_type):
 
 def _mpeg_ts_has_audio(data):
 	"""True/False fuer MPEG-TS, None wenn die Daten kein MPEG-TS sind."""
+	data = bytearray(data)
 	sync = next((offset for offset in range(min(188, len(data)))
 		if all(pos < len(data) and data[pos] == 0x47
 			for pos in (offset, offset + 188, offset + 376, offset + 564))), None)
@@ -140,7 +141,7 @@ def _mpeg_ts_has_audio(data):
 		payload, _ = _ts_payload(packet)
 		if payload:
 			payloads[pid].extend(payload)
-	return any(_valid_audio_frame(bytes(payloads[pid]), stream_type)
+	return any(_valid_audio_frame(payloads[pid], stream_type)
 		for pid, stream_type in audio_pids.items())
 
 def _read_probe(response, limit=TS_AUDIO_PROBE_BYTES):

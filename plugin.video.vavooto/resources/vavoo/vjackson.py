@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 from vavoo.utils import *
 
-urllib3.disable_warnings()
+if urllib3: urllib3.disable_warnings()
 BASEURL = "https://vavoo.to/ccapi/"
 
 def menu(params):
@@ -42,13 +42,16 @@ def group_tv(params):
 		from vavoo.vavoo_tv import vavoo_groups
 		gruppen, hash = vavoo_groups()
 		for group in gruppen: 
-			addDir2(group.encode().decode("ascii", errors="ignore"), "DefaultAddonPVRClient", "channels", type="vavoo", group=group)
+			addDir2(ascii_only(group), "DefaultAddonPVRClient", "channels", type="vavoo", group=group)
 	elif params.get("type")=="stalker":
 		from vavoo.stalker import StalkerPortal
 		portal = StalkerPortal(get_cache_or_setting("stalkerurl"), get_cache_or_setting("mac"))
 		gruppen = portal.genres()
+		if not isinstance(gruppen, dict):
+			log("Keine Stalker-Gruppen: %r" % (gruppen,))
+			gruppen = {}
 		for title, groupid in  gruppen.items():
-			addDir2(title.encode().decode("ascii", errors="ignore"), "DefaultAddonPVRClient", "channels", type="stalker", group=groupid)
+			addDir2(ascii_only(title), "DefaultAddonPVRClient", "channels", type="stalker", group=groupid)
 	elif params.get("type")=="lite":
 		from vavoo import vjlive
 		vjlive.channels(None, "lite", None)
@@ -127,7 +130,7 @@ def catalog_list(params):
 	cursor = params.get("cursor")
 	if cursor in (None, "", "None"):
 		cursor = None
-	elif isinstance(cursor, str) and cursor.isdigit():
+	elif isinstance(cursor, string_types) and cursor.isdigit():
 		cursor = int(cursor)
 	signature = getAuthSignature()
 	if not signature:
@@ -320,6 +323,7 @@ def get_mirrors(params):
 		mirrors = request_json("POST", url, json=_data, headers=_headers, timeout=10, retries=1)
 		set_cache(params, mirrors, 1)
 	if not mirrors: return None
+	log("Mirrors gesamt: %s, davon deutsch: %s" % (len(mirrors), len([m for m in mirrors if "de" in m.get("languages", [])])))
 	newurllist = []
 	for i ,a in enumerate(mirrors, 1):
 		if not "de" in a.get('languages', []): continue

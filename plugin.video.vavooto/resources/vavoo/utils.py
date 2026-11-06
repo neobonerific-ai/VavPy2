@@ -25,6 +25,20 @@ except Exception:
                 continue
         raise ValueError("cannot parse date: %r" % value)
 from traceback import format_exc
+try:
+    string_types = basestring  # Python 2
+    text_type = unicode
+except NameError:
+    string_types = str
+    text_type = str
+
+def to_text(v):
+	if isinstance(v, bytes):
+		return v.decode("utf-8", "ignore")
+	return v if isinstance(v, text_type) else text_type(v)
+
+def ascii_only(s):
+	return to_text(s).encode("ascii", "ignore").decode("ascii")
 from zlib import compress, decompress
 from xbmcgui import ListItem, Dialog, DialogProgress, Window
 try:
@@ -32,7 +46,17 @@ try:
     from urllib.parse import urlencode, urlparse, parse_qsl, quote_plus, urlsplit, quote, urljoin
 except ImportError:
     # Python 2
-    from urllib import urlencode, quote, quote_plus
+    from urllib import urlencode as _urlencode, quote as _quote, quote_plus as _quote_plus
+    def _b(v):
+        return v.encode("utf-8") if isinstance(v, unicode) else v
+    def quote(s, *a, **k):
+        return _quote(_b(s), *a, **k)
+    def quote_plus(s, *a, **k):
+        return _quote_plus(_b(s), *a, **k)
+    def urlencode(query, *a, **k):
+        if isinstance(query, dict):
+            query = query.items()
+        return _urlencode([(_b(x), _b(y)) for x, y in query], *a, **k)
     from urlparse import urlparse, parse_qsl, urlsplit, urljoin
 try:
     from concurrent.futures import ThreadPoolExecutor, as_completed
@@ -45,6 +69,7 @@ except ImportError:
             self._exc = None
             self._done = threading.Event()
             self._thread = threading.Thread(target=self._run, args=(fn, a, kw))
+            self._thread.daemon = True
             self._thread.start()
         def _run(self, fn, a, kw):
             try:
@@ -60,9 +85,17 @@ except ImportError:
             return self._result
     class ThreadPoolExecutor(object):
         def __init__(self, max_workers=4):
-            self.max_workers = max_workers
+            self.max_workers = max(1, int(max_workers or 1))
+            self._sem = threading.Semaphore(self.max_workers)
         def submit(self, fn, *a, **kw):
-            return _Future(fn, *a, **kw)
+            sem = self._sem
+            def _bounded():
+                with sem:
+                    return fn(*a, **kw)
+            return _Future(_bounded)
+        def map(self, fn, *iterables):
+            futs = [self.submit(fn, *args) for args in zip(*iterables)]
+            return [f.result() for f in futs]
         def __enter__(self):
             return self
         def __exit__(self, *a):
@@ -184,13 +217,26 @@ def _build_backup_payload():
 
 def request(method, url, retries=2, timeout=15, **kwargs):
 	kwargs.setdefault("timeout", timeout)
-	for attempt in range(retries + 1):
+	# verify=False wird zuerst mit Zertifikatspruefung versucht; nur bei SSL-Fehler ohne Pruefung wiederholt.
+	# Einstellung "insecure_ssl"=true erzwingt das alte Verhalten.
+	verify_fallback = kwargs.get("verify") is False and getSetting("insecure_ssl") != "true"
+	if verify_fallback: kwargs["verify"] = True
+	attempt = 0
+	while True:
 		try:
 			return session.request(method, url, **kwargs)
+		except requests.exceptions.SSLError:
+			if verify_fallback:
+				verify_fallback = False
+				kwargs["verify"] = False
+				continue
+			if attempt >= retries:
+				raise
 		except requests.RequestException:
 			if attempt >= retries:
 				raise
-			monitor.waitForAbort(min(2 ** attempt, 4))
+		monitor.waitForAbort(min(2 ** attempt, 4))
+		attempt += 1
 
 def request_json(method, url, retries=2, timeout=15, **kwargs):
 	try:
@@ -270,13 +316,8 @@ _AUTH_SIGNATURE_SAFETY_MS = 30000
 # (5 Versuche x request(retries=3) x 15s Timeout x 2 Profile).
 _AUTH_SIGNATURE_TOTAL_BUDGET = 25
 
-try:
-	_string_types = (basestring,)
-except NameError:
-	_string_types = (str,)
-
 def _decode_auth_signature(signature):
-	if not isinstance(signature, _string_types) or not signature:
+	if not isinstance(signature, string_types) or not signature:
 		return None
 	try:
 		encoded = signature.encode("ascii")
@@ -285,7 +326,7 @@ def _decode_auth_signature(signature):
 		if not isinstance(envelope, dict) or not envelope.get("signature"):
 			return None
 		payload = envelope.get("data")
-		if isinstance(payload, _string_types):
+		if isinstance(payload, string_types):
 			payload = json.loads(payload)
 		return payload if isinstance(payload, dict) else None
 	except Exception:
@@ -391,15 +432,36 @@ def delete_search(params):
 
 def selectDialog(list, heading=None, multiselect = False, preselect=False):
 	if heading == 'default' or heading is None: heading = addonInfo('name')
-	if multiselect: 
+	if multiselect:
 		if preselect==False: preselect=[]
-		return dialog.multiselect(str(heading), list, preselect=preselect)
-	return dialog.select(str(heading), list, preselect=preselect)
+		try:
+			return dialog.multiselect(str(heading), list, preselect=preselect)
+		except TypeError:  # Kodi 18: multiselect ohne preselect
+			return dialog.multiselect(str(heading), list)
+	if preselect is False or preselect is None: preselect = -1
+	try:
+		return dialog.select(str(heading), list, preselect=preselect)
+	except TypeError:
+		return dialog.select(str(heading), list)
+
+def _cache_name(key):
+	name = convertPluginParams(key)
+	if len(name) > 100:
+		name = "h_" + md5(name.encode("utf-8") if isinstance(name, text_type) else name).hexdigest()
+	return name
+
+# Grosse Eintraege (Kanallisten) nicht im Window-RAM halten, nur auf Platte.
+_HOME_CACHE_MAX = 256 * 1024
+def _home_cache(path, data):
+	if len(data) <= _HOME_CACHE_MAX:
+		home.setProperty(path, data)
+	else:
+		home.clearProperty(path)
 
 def set_cache(key, value, timeout=False):
-	path = convertPluginParams(key)
+	path = _cache_name(key)
 	data = json.dumps({"sigValidUntil": False if timeout == False else int(time.time()) + (timeout * 3600), "value": value})
-	home.setProperty(path, data)
+	_home_cache(path, data)
 	file_path = os.path.join(cachepath, path)
 	temp_path = None
 	if addon.getSetting("comp") == "true":
@@ -423,7 +485,7 @@ def set_cache(key, value, timeout=False):
 			os.remove(temp_path)
 
 def get_cache(key):
-	path = convertPluginParams(key)
+	path = _cache_name(key)
 	keyfile = home.getProperty(path)
 	if keyfile:
 		try:
@@ -449,7 +511,7 @@ def get_cache(key):
 			if sigValidUntil == False or sigValidUntil > int(time.time()):
 				value = r.get('value')
 				data = json.dumps({"sigValidUntil": sigValidUntil, "value": value})
-				home.setProperty(path, data)
+				_home_cache(path, data)
 				log("{} from cache".format(key))
 				return True, value
 			os.remove(file_path)
@@ -463,7 +525,7 @@ def get_cache_or_setting(setting):
 	return a
 	
 def del_cache(key):
-	path = convertPluginParams(key)
+	path = _cache_name(key)
 	try:
 		file = os.path.join(cachepath, path)
 		home.clearProperty(path)
@@ -475,8 +537,8 @@ def del_cache(key):
 
 def filterout(name):
 	if addon.getSetting("filter") == "true":
-		name = name.encode().decode("ascii", errors="ignore")
-		for r in(("   ", " "), ("  ", " "), ("SPORT1", "SPORT 1"), ("BIBELTV", "BIBEL TV"), ("DIGITALL", "DIGITAL"), ("EINS", "1"), ("ZWEI", "2"), ("DREI", "3"), ("SIEBEN", "7"), ("III", "3"), ("II", "2"), ("BR TV", "BR"), ("ʜᴅ", "")): name = name.replace(*r).strip()
+		name = ascii_only(name)
+		for r in(("   ", " "), ("  ", " "), ("SPORT1", "SPORT 1"), ("BIBELTV", "BIBEL TV"), ("DIGITALL", "DIGITAL"), ("EINS", "1"), ("ZWEI", "2"), ("DREI", "3"), ("SIEBEN", "7"), ("III", "3"), ("II", "2"), ("BR TV", "BR")): name = name.replace(*r).strip()
 		if "BLACK" in name: return "AXN BLACK"
 		if "E!" in name: return "E! ENTERTAINMENT"
 		elif "AXN" in name or "WHITE" in name: return "AXN WHITE"
@@ -593,7 +655,7 @@ def get_meta(param):
 	_meta["writer"],_meta["director"] = [],[]
 	trailer_url = "plugin://plugin.video.youtube/play/?video_id=%s"
 	lang = "de-DE" #Addon().getSetting("tmdb_lang")
-	api_key = "86dd18b04874d9c94afadde7993d94e3"
+	api_key = (getSetting("tmdb_api_key") or "").strip() or "86dd18b04874d9c94afadde7993d94e3"
 	append_to_response = "credits,videos,external_ids,content_ratings,keywords,translations"
 	if media_type == "movie": append_to_response = append_to_response.replace("content_ratings", "release_dates")
 	poster = "https://image.tmdb.org/t/p/%s" % "w342" #Addon().getSetting("poster_tmdb")
@@ -778,8 +840,8 @@ def log(msg, header=""):
 		return
 	# Debug aus: grosse Strukturen NICHT serialisieren (json.dumps auf Kanal-/
 	# Kataloglisten kostet auch dann, wenn die Zeile nur als LOGDEBUG rausgeht).
-	if isinstance(msg, str):
-		text = msg if len(msg) <= 1000 else msg[:1000] + "…"
+	if isinstance(msg, string_types):
+		text = msg if len(msg) <= 1000 else msg[:1000] + "..."
 	else:
 		text = "<%s>" % type(msg).__name__
 	xbmc.log("####VAVOOTO#### %s%s" % ("%s " % header if header else "", text), xbmc.LOGDEBUG)
@@ -821,7 +883,8 @@ def createListItem(params):
 	infos = data["infos"]
 	if params.get("e"):o = ListItem("S%sxE%s %s" %(params["s"], params["e"], infos["title"]) , infos["title"])
 	else: o = ListItem('%s (%s)' %(infos["title"], infos["year"])) if 'year' in infos and infos["year"] else ListItem(infos["title"])
-	o.setProperties(data["properties"])
+	for _k, _v in data["properties"].items():
+		o.setProperty(_k, _v if isinstance(_v, string_types) else str(_v))
 	art = data["art"]
 	if art.get("poster"): art["icon"] = art["poster"]
 	if art.get("thumb"): art["poster"] = art["thumb"]
