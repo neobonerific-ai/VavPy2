@@ -20,21 +20,13 @@ Portierung eines Kodi-Add-ons für Amlogic S812 / AlexELEC 3.3.3 (Kodi 18.9, Pyt
 
 ```
 .
-├── .github/workflows/CI-Workflow-Datei
+├── .github/workflows/
 ├── das Add-on-Verzeichnis/
 ├── tests/
 ├── .gitignore
-├── AGENTS.md
-├── HARDWARE_TEST.md
-├── PROJECT_STATUS.md
-├── README.md
-└── UPSTREAM.md
+└── README.md
 ```
 
 ## CI und Installations-ZIP
 
-CI-Workflow: `.github/workflows/CI-Workflow-Datei`. Die Installations-ZIP enthält ausschließlich `das Add-on-Verzeichnis/` mit `das Add-on-Verzeichnis/addon.xml`.
-
-## Upstream-Referenz
-
-Der Python-3-Upstream dient lediglich als technische Referenz. Siehe `UPSTREAM.md`.
+CI-Workflow im Verzeichnis `.github/workflows/`. Die Installations-ZIP enthält ausschließlich das Add-on-Verzeichnis mit `addon.xml`.
