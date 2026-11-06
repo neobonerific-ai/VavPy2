@@ -1,10 +1,40 @@
-# Michaz Kodi Add-on-Quellen
+# VAVOO.TO Kodi 18 Python 2 Port
 
-Dieser Branch enthält die Quellen der Kodi-Add-ons. Die veröffentlichte
-Repository-Webseite liegt in der Branch `main` desselben Git-Repositories.
+Schlankes Repository für den VAVOO.TO Kodi-Add-on-Port auf Python 2.7 / Kodi 18.9 (Leia).
 
-Ein Push auf `addons` startet den Workflow **Add-ons nach main
-veröffentlichen**. Er testet den Generator, erstellt die versionsgebundenen
-ZIP-Dateien, aktualisiert `addons.xml` und `addons.xml.md5` und erzeugt die
-Verzeichnis-Indizes neu. Pro Add-on bleiben die zwei neuesten ZIP-Versionen
-erhalten.
+## Zweck
+
+Portierung des VAVOO.TO Add-ons für Amlogic S812 / AlexELEC 3.3.3 (Kodi 18.9, Python 2.7).
+
+## Unterstützte Hardware und Software
+
+- Amlogic S812 / M8S
+- AlexELEC 3.3.3 (Kodi 18.9, Python 2.7)
+
+## Kodi-/Python-Kompatibilität
+
+- Kodi 18.9 / API 2.26.0
+- Python 2.7 (kein Python-3-Code im Runtime-Pfad)
+
+## Aufbau des Repositorys
+
+```
+VavPy2/
+├── .github/workflows/vavoo-py2.yml
+├── plugin.video.vavooto/
+├── tests/
+├── .gitignore
+├── AGENTS.md
+├── HARDWARE_TEST.md
+├── PROJECT_STATUS.md
+├── README.md
+└── UPSTREAM.md
+```
+
+## CI und Installations-ZIP
+
+CI-Workflow: `.github/workflows/vavoo-py2.yml`. Die Installations-ZIP enthält ausschließlich `plugin.video.vavooto/` mit `plugin.video.vavooto/addon.xml`.
+
+## Upstream-Referenz
+
+Der Python-3-Upstream (`michaz1988/michaz1988.github.io`, Branch `addons`) dient lediglich als technische Referenz. Siehe `UPSTREAM.md`.

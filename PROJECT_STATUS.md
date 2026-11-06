@@ -1,39 +1,30 @@
 # Project Status
 
-Phase: 2 Stabilization — A/B/C/D complete (incl. package zip layout + infotagger removal + MediaHubMX hardening + Python 2.7 unicode type handling), E documented (not executed)
-Branch: kodi18-py2
-Commit: 5274d9e Fix Python 2.7 unicode type handling in auth and stalker
-Last Run: 42131111309 (success on d63caa4)
-Processed Run-IDs: 42041332854, 42042148762, 42043142676, 42044693828, 42045069053, 42048108905, 42049255467, 42050349077, 42050370005, 42052501214, 42053615632, 42053637740, 42054759902, 42054788404, 42056007788, 42056025407, 42057196681, 42058562077, 42059735949, 42060938503, 42061898948, 42062761835, 42062806606, 42063869356, 42063919705, 42065146201, 42065194381, 42067497762, 42067613948, 42068835015, 42069223041, 42070107242, 42070133223, 42071363910, 42072484887, 42072502462, 42074870068, 42078150318, 42079261316, 42080188142, 42081131235, 42081157349, 42082086112, 42082962735, 42083136525, 42084180639, 42085129847, 42086078815, 42087141748, 42088205999, 42088399170, 42089147652, 42090131250, 42091094036, 42092061552, 42093020805, 42094025416, 42101427941, 42101619340, 42102073571, 42102699655, 42103257871, 42103623147, 42104567469, 42121221926, 42121722966, 42122596770, 42123383110, 42123613488, 42124261295, 42125625620, 42129459488, 42130388998, 42131111309
+- Branch: kodi18-py2
+- Commit: 95892299d9cb6dbd388ad6e187e78a9e7a676553
+- Default-Branch: kodi18-py2
 
-Open tasks: None automatable. Hardware test E documented/manual only.
+## Status
 
-## Entwicklungspakete
-- A Vollständiger Python-2.7-Port (abgeschlossen)
-- B HTTPX/Netzwerktransport (abgeschlossen: requests-only)
-- C Kodi-18-Integration (abgeschlossen: inputstream.ffmpeg)
-- D Funktionstests/CI (abgeschlossen)
-- E Hardwaretest (dokumentiert, nicht ausgeführt)
+Repository bereinigt: enthält ausschließlich den VAVOO Python-2-Port.
 
-## Nächste konkrete Aufgabe
-Keine offene automatisierbare Aufgabe. Hardwaretest manuell gemäß HARDWARE_TEST.md.
+## Zuletzt nachweislich erfolgreiche CI
 
-## Letzter geprüfter Commit
-d63caa4 (status commit after run 42130388998, CI green on 42131111309)
+- Run 42141204924 (success) auf 95892299d9cb6dbd388ad6e187e78a9e7a676553
 
 ## Tatsächlich bestandene Tests
-- compileall (Python 2.7 container) — Syntax OK.
-- smoke_import (Kodi18 mocks) — alle 8 Module OK.
-- test_kodi18_compat — ListItemInfoTag fallback OK.
-- test_http_transport — requests client OK.
-- test_linear_lite — _extract_stream_url, _nydus_category, _b64decode OK.
-- test_live_proxy_helpers — OK.
-- test_live_proxy_hls — OK.
-- test_playback_properties — OK.
-- test_package_zip — top-level plugin.video.vavooto folder, addon id OK.
-- test_dependencies — OK.
 
-## Bekannte Einschränkungen
-- CI prüft compileall + smoke + http + compat + linear_lite + live_proxy + playback + package + deps.
-- HTTPX entfernt; get_httpx() liefert requests.Session oder False.
-- Kein Hardwarezugriff bisher dokumentiert.
+Siehe CI-Workflow `.github/workflows/vavoo-py2.yml` (compileall, smoke, http, compat, linear_lite, live_proxy, playback, package, deps).
+
+## Bekannte offene Fehler
+
+Keine automatisierbaren offenen Fehler dokumentiert.
+
+## Ausstehende Hardwaretests
+
+Hardwaretest auf Amlogic S812 / AlexELEC 3.3.3 nicht ausgeführt. Siehe HARDWARE_TEST.md.
+
+## Nächste Schritte
+
+- CI nach Bereinigungs-Commit erneut ausführen.
+- Hardwaretest manuell durchführen.
