@@ -6,7 +6,7 @@
 
 ## Status
 
-Repository bereinigt: enthält ausschließlich den VAVOO Python-2-Port.
+Repository bereinigt: enthält ausschließlich den VaVpy2 Python-2-Port.
 
 ## Zuletzt nachweislich erfolgreiche CI
 

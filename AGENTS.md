@@ -1,4 +1,4 @@
-# VAVOO.TO Kodi 18 Python 2 Port — Agent Notes
+# VaVpy2 Kodi 18 Python 2 Port — Agent Notes
 
 - Repository: neobonerific-ai/VavPy2
 - Arbeitsbranch: kodi18-py2

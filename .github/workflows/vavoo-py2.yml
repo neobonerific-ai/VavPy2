@@ -1,4 +1,4 @@
-name: VAVOO Py2 CI
+name: VaVpy2 CI
 on:
   push:
     branches: [kodi18-py2]
@@ -37,5 +37,5 @@ jobs:
       - name: Upload
         uses: actions/upload-artifact@v4
         with:
-          name: vavoo-py2
+          name: vavpy2
           path: /tmp/plugin.video.vavooto.zip
