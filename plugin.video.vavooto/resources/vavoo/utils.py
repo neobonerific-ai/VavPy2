@@ -128,7 +128,7 @@ if os.path.exists(lib_path) and lib_path not in sys.path:
 addonprofile = translatePath(addonInfo('profile'))
 addonpath = translatePath(addonInfo('path'))
 cachepath = os.path.join(addonprofile, "cache")
-if not exists(cachepath): os.makedirs(cachepath)
+if not exists(cachepath): os.makedirs(cachepath, exist_ok=True)
 home = Window(10000)
 session = requests.Session()
 progress = DialogProgress()
